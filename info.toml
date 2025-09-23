@@ -1,0 +1,7 @@
+[meta]
+name        = "Random Map Pace Challenge"
+author      = "rplnt"
+category    = "Race"
+
+[script]
+dependencies = ["MXRandom"]
