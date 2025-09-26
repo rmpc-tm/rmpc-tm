@@ -161,6 +161,7 @@ void Run(int64 timeDelta) {
    }
 
    // detect map finished
+   // TODO - check if same map as loaded
    auto finishTime = GetFinishTime();
    if (finishTime >= 0 && finishTime != currentMap.lastFinishTime) {
       if (finishTime < currentMap.pbFinishTime || currentMap.pbFinishTime < 0) {
@@ -177,35 +178,6 @@ void Run(int64 timeDelta) {
       currentMap.done = true;
       SkipToNextMap();
    }
-}
-
-// source: MXRandom
-int GetFinishTime() {
-    auto app = cast<CTrackMania>(GetApp());
-    auto playground = cast<CSmArenaClient>(app.CurrentPlayground);
-    auto script = cast<CSmArenaRulesMode>(app.PlaygroundScript);
-
-    int finishTime = -1;
-
-    if (playground !is null && script !is null && playground.GameTerminals.Length > 0) {
-        auto terminal = playground.GameTerminals[0];
-        auto player = cast<CSmPlayer>(terminal.ControlledPlayer);
-        if (player !is null) {
-            auto seq = terminal.UISequence_Current;
-            if (seq == SGamePlaygroundUIConfig::EUISequence::Finish || seq == SGamePlaygroundUIConfig::EUISequence::UIInteraction) {
-                CSmScriptPlayer@ playerScriptAPI = cast<CSmScriptPlayer>(player.ScriptAPI);
-                auto ghost = script.Ghost_RetrieveFromPlayer(playerScriptAPI);
-                if (ghost !is null) {
-                    if (ghost.Result.Time > 0 && ghost.Result.Time < uint(-1)) {
-                        finishTime = ghost.Result.Time;
-                    }
-                    script.DataFileMgr.Ghost_Release(ghost.Id);
-                }
-            }
-        }
-    }
-
-    return finishTime;
 }
 
 void StartNewGame(int64 timer, const string mode) {
