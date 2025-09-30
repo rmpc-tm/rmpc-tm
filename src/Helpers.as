@@ -17,15 +17,6 @@ bool IsAutoPaused() {
     return false;
 }
 
-int64 lastDeltaAt = 0;
-int64 calculateDelta() {
-   auto now = Time::Now;
-   auto newDelta = (lastDeltaAt==0)?0:now-lastDeltaAt;
-   lastDeltaAt = now;
-
-   return newDelta;
-}
-
 // source: MXRandom
 int GetFinishTime() {
     auto app = cast<CTrackMania>(GetApp());

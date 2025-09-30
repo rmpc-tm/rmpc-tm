@@ -24,4 +24,4 @@ const string DEFAULT_MODE = "Author Time";
 const int64 DISPLAY_EXTRA_TIMER_FOR = 5 * 1000;
 const int64 DISPLAY_EXTRA_TIMER_FULL_APHA = 5 * 900;
 
-const int64 MAX_MAP_LENGTH = 3 * 60 * 1000;
+const int64 MAX_MAP_LENGTH = 3 * ONE_MINUTE;

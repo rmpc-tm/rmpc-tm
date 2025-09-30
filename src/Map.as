@@ -36,71 +36,83 @@ class Map {
       return HasFinished() && EarnedMedal() >= medal;
    }
 
-    int64 CalculateScore(int64 time) {
-        return Math::Min((time + medals[Medals::Author]) / 2, MAX_MAP_LENGTH);
+    int64 _calculateScore(int64 time, Medals medal) {
+        const auto target = Math::Min(medals[medal], MAX_MAP_LENGTH);
+        const auto finishTime = Math::Min(time, target);
+        const auto cap = (time + target) / 2.0f;
+        const auto gradient = 2.0f;
+
+        return int64(cap + (target - cap) * Math::Pow(float(finishTime) / float(target), gradient));
     }
 
-   int64 Score() {
-      return CalculateScore(pbFinishTime);
+   int64 Score(Medals medal) {
+      return _calculateScore(pbFinishTime, medal);
    }
 
-   Medals EarnedMedal() {
-     if (pbFinishTime < 0) {
-         return Medals::None;
-      }
+    Medals EarnedMedal() {
+        if (pbFinishTime < 0) {
+            return Medals::None;
+        }
 
-      if (pbFinishTime <= medals[Medals::Author]) {
-         return Medals::Author;
-      }
-      if (pbFinishTime <= medals[Medals::Gold]) {
-         return Medals::Gold;
-      }
-      if (pbFinishTime <= medals[Medals::Silver]) {
-         return Medals::Silver;
-      }
-      if (pbFinishTime <= medals[Medals::Bronze]) {
-         return Medals::Bronze;
-      }
-      
-      return Medals::None;
-   }
+        if (pbFinishTime <= medals[Medals::Author]) {
+            return Medals::Author;
+        }
+        if (pbFinishTime <= medals[Medals::Gold]) {
+            return Medals::Gold;
+        }
+        if (pbFinishTime <= medals[Medals::Silver]) {
+            return Medals::Silver;
+        }
+        if (pbFinishTime <= medals[Medals::Bronze]) {
+            return Medals::Bronze;
+        }
 
-   int64 SkipCost() {
-      if (medals[Medals::Author] > 3 * ONE_MINUTE) {
-         // too long
-         return 0;
-      }
+        return Medals::None;
+    }
 
-      if (pbFinishTime < 0) {
-         // not finished
-         return Math::Max(medals[Medals::Bronze], MAX_MAP_LENGTH) + 3 * Math::Min(medals[Medals::Bronze], MAX_MAP_LENGTH);
-      }
+    int64 SkipCost(Medals goal) {
+        if (medals[goal] > MAX_MAP_LENGTH) {
+            return 0; // too long
+        }
 
-      auto medal = EarnedMedal();
-      if (medal == Medals::None) {
-         return Math::Min(
-            medals[Medals::Author] + medals[Medals::Gold] + medals[Medals::Silver] + medals[Medals::Bronze] + Math::Max(medals[Medals::Bronze], ONE_MINUTE),
-            5 * MAX_MAP_LENGTH
-         );
-      }
-      if (medal == Medals::Bronze) {
-         return Math::Min(
-            medals[Medals::Author] + medals[Medals::Gold] + medals[Medals::Silver] + Math::Max(medals[Medals::Silver], ONE_MINUTE),
-            4 * MAX_MAP_LENGTH
-         );
-      }
-      if (medal == Medals::Silver) {
-         return Math::Min(
-            medals[Medals::Author] + medals[Medals::Gold] + Math::Max(medals[Medals::Gold], ONE_MINUTE),
-            3 * MAX_MAP_LENGTH
-         );
-      }
-      if (medal == Medals::Gold) {
-         return 0;
-      }
+        auto earnedMedal = EarnedMedal();
+        if (earnedMedal >= goal) {
+            return 0; // goal achieved
+        }
 
-      return 0; // AT, huh?
-   }
+        int64 extra = goal == Medals::Author ? medals[Medals::Author] : 0;
+        int64 midpoint = (medals[goal] + medals[Medals::Bronze]) / 2;
+
+        // unfinished
+        if (pbFinishTime < 0) {
+            return extra + Math::Max(medals[Medals::Bronze], ONE_MINUTE) + 3 * Math::Min(midpoint, MAX_MAP_LENGTH);
+        }
+
+        extra += Math::Max(0, medals[earnedMedal+1] - pbFinishTime);
+
+        if (earnedMedal == Medals::None) {
+            return Math::Min(
+                extra + medals[Medals::Gold] + medals[Medals::Silver] + medals[Medals::Bronze] + Math::Max(medals[Medals::Bronze], ONE_MINUTE),
+                4 * MAX_MAP_LENGTH + extra
+            );
+        }
+
+        /* Medals */
+        if (earnedMedal == Medals::Bronze) {
+            return Math::Min(
+                extra + medals[Medals::Gold] + medals[Medals::Silver] + Math::Max(medals[Medals::Silver], ONE_MINUTE),
+                3 * MAX_MAP_LENGTH + extra
+            );
+        }
+        if (earnedMedal == Medals::Silver) {
+            return Math::Min(
+                extra + medals[Medals::Gold] + Math::Max(medals[Medals::Gold], ONE_MINUTE),
+                2 * MAX_MAP_LENGTH + extra
+            );
+        }
+
+        return 0; // Free Gold skip for Author
+    }
 
    int64 TimeSpent() {
       return timeSpent;

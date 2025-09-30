@@ -1,7 +1,7 @@
 uint64 shownSkipCostTimerAt = 0;
 uint64 shownNewScoreTimerAt = 0;
 
-int64 lastSkipCost = - 4 * MAX_MAP_LENGTH;
+int64 lastSkipCost = 0;
 int64 lastScore = 0;
 
 
@@ -17,48 +17,47 @@ void Render() {
         UI::PushStyleVar(UI::StyleVar::FramePadding, vec2(5, 5));
         UI::PushStyleVar(UI::StyleVar::WindowTitleAlign, vec2(0.5, 0.5));
     }
-
-    UI::Begin(SHORT_NAME_WITH_ICON, UI::WindowFlags::AlwaysAutoResize | UI::WindowFlags::NoScrollbar | UI::WindowFlags::NoCollapse | UI::WindowFlags::NoResize);
-
-    if (GameInProgress() || GameFinished()) {
-        DisplayGameScreen();
-    } else {
-        // DisplayGameScreen();
+    // UI::SetNextWindowSize(350, 600); // not compatible with UI::WindowFlags::AlwaysAutoResize
+    UI::Begin(SHORT_NAME_WITH_ICON, UI::WindowFlags::AlwaysAutoResize | UI::WindowFlags::NoScrollbar | UI::WindowFlags::NoCollapse);
+    if (game is null) {
         DisplayStartScreen();
+    } else {
+        DisplayGameScreen();
     }
+
+    // DEBUG();
 
     UI::End();
     UI::PopStyleVar(styleVarCount);
 }
 
 void DisplayGameScreen() {
-    RenderTimer(ProgressIcon(), COLOR_GREEN, gameTimerMs, 0, 0);
-    RenderTimer(Icons::Tachometer, COLOR_YELLOW, scoreTimerMs, shownNewScoreTimerAt, lastScore);
+    RenderTimer(ProgressIcon(), COLOR_GREEN, game.timer, shownSkipCostTimerAt, lastSkipCost);
+    RenderTimer(Icons::Tachometer, COLOR_YELLOW, game.score, shownNewScoreTimerAt, lastScore);
     RenderPB();
     UI::NewLine();
     UI::Separator();
 
 
-    int secondColumn = 110 + WINDOW_PADDING;
-    RenderTinyTimer(Icons::ClockO, COLOR_GRAY_LIGHT, TotalTimeSpent());
+    int secondColumn = WINDOW_PADDING + 103;
+    RenderTinyTimer(Icons::ClockO, COLOR_GRAY_LIGHT, game.TotalTimeSpent());
     UI::SetCursorPosX(secondColumn);
-    RenderTinyTimer(Icons::ClockO, COLOR_GRAY_LIGHT, CurrentTimeSpent());
+    RenderTinyTimer(Icons::ClockO, COLOR_GRAY_LIGHT, game.CurrentTimeSpent());
     UI::NewLine();
-    if (GameFinished()) {
-        RenderTiny(Icons::Road, COLOR_GRAY_LIGHT, "" + CurrentMapCount());
-        UI::SetCursorPosX(secondColumn);
-        RenderTiny(Icons::Forward, COLOR_GRAY_LIGHT, "" + CurrentMapsSkipped());
-        UI::NewLine();
+    if (game.IsFinished()) {
+        // TODO stats
+        // RenderTiny(Icons::Road, COLOR_GRAY_LIGHT, "" + CurrentMapCount());
+        // UI::SetCursorPosX(secondColumn);
+        // RenderTiny(Icons::Forward, COLOR_GRAY_LIGHT, "" + CurrentMapsSkipped());
+        // UI::NewLine();
     }
-
-    // RenderTiny(Icons::Tachometer, COLOR_GRAY_LIGHT, "+" + clock(LiveScore()));
-    // UI::NewLine();
-    
-    if (GameInProgress()) {
+   
+    if (game.IsInProgress()) {
+        auto currentSkipCost = game.CurrentSkipPenalty();
         UI::Separator();
         // Medals
         for( int m = Medals::None; m <= Medals::Author; m++ ) {
-            auto color = HasMedal(Medals(m)) ? MedalColor(Medals(m)) : COLOR_GRAY_DARK;
+            auto color = game.HasMedal(Medals(m)) ? MedalColor(Medals(m)) : COLOR_GRAY_DARK;
             UI::PushStyleColor(UI::Col::Text, color);
             UI::Text(m == Medals::None?Icons::FlagCheckered:Icons::Circle); UI::SameLine();
             UI::PopStyleColor();
@@ -68,14 +67,13 @@ void DisplayGameScreen() {
         // Next Map
         UI::PushFontSize(18);
         if (UI::ButtonColored(Icons::Forward + "  Next Map ", 0.860)) {
-            ShowLastSkip(CurrentSkipPenalty());
-            SkipToNextMap();
+            game.SkipToNextMap();
         }
         UI::PopFontSize();
 
         // Cost
         UI::Text(Icons::HourglassHalf); UI::SameLine();
-        auto penaltyLabel = CurrentSkipPenalty()==0 ? "Free" : clock(CurrentSkipPenalty());
+        auto penaltyLabel = currentSkipCost==0 ? "Free" : clock(currentSkipCost);
         if (IsAutoPaused()) { penaltyLabel = "???"; }
         UI::PushStyleColor(UI::Col::Text, COLOR_GREEN);
         UI::Text(penaltyLabel); UI::SameLine();
@@ -93,14 +91,14 @@ void DisplayGameScreen() {
 
 void RenderBottomRowButtons() {
     UI::PushFontSize(13);
-    auto pauseLabel = isPaused?Icons::Play:Icons::Pause;
+    auto pauseLabel = game.IsPaused()?Icons::Play:Icons::Pause;
     if (UI::ButtonColored(pauseLabel, 0.3f)) {
-        TogglePause();
+        game.TogglePause();
     }
     UI::SameLine();
-    UI::SetCursorPosX(108);
+    UI::SetCursorPosX(92);
     if (UI::ButtonColored(Icons::TimesCircleO + "Broken", 0.15f)) {
-        if (GameInProgress()) FreeSkip();
+        if (game.IsInProgress()) game.SkipBrokenMap();
     }
     UI::SameLine();
     if (UI::ButtonColored(Icons::Times + "Reset", 0.0f)) {
@@ -109,37 +107,54 @@ void RenderBottomRowButtons() {
     UI::PopFontSize();
 }
 
+void modeComboItem(ChallengeMode id) {
+        UI::PushID(ModeName(id));
+        if (UI::Selectable(ModeName(id), SelectedChallengeMode == id)) {
+            SelectedChallengeMode = id;
+        }
+        UI::PopID();
+}
+
 void DisplayStartScreen() {
     UI::PushFontSize(18);
-    UI::Text("Timer:"); UI::SameLine(); UI::Text(clock(DEFAULT_TIME));
-    UI::Text("Mode:"); UI::SameLine(); UI::Text(DEFAULT_MODE);
-
+    UI::Text("Challenge Target");
     UI::PopFontSize();
+    UI::PushItemWidth(140);
+    if(UI::BeginCombo("##ChallengeTarget", ModeName(SelectedChallengeMode))) {
+        modeComboItem(ChallengeMode::Author60);
+        modeComboItem(ChallengeMode::Gold60);
+        UI::EndCombo();
+    }
+    UI::PopItemWidth();
     
-    UI::PushFontSize(15);
+    UI::PushFontSize(14);
+    UI::SameLine();
+    UI::SetCursorPosX(170);
     RenderPB();
     UI::NewLine();
     UI::Separator();
-    UI::Text("Goal:\nCollect Time by beating ATs until the timer runs out.");
-    UI::Text("Details:\nYou only get scored if you beat the AT. The time you\n"+
-            "gain into your score  ("+Icons::Tachometer+" icon)  is calculated from\n"+
-            "your finishing time. You can skip any map,\n"+
-            "but time may be substracted from your remaining\n"+
-            "time.  The cost is displayed under to the skip button\n"+
+
+    UI::Markdown("**Goal**  \nCollect Time ("+Icons::Tachometer+") until the Timer ("+Icons::HourglassStart+") runs out.");
+    UI::NewLine();
+    UI::Markdown("**Details**  \nYou only get scored if you beat the " + ModeMedalName(SelectedChallengeMode) + " time. The score you "+
+            "gain into your Time is calculated from map length and your finishing time. You can skip any map, "+
+            "but time may be substracted from the Timer. The cost is displayed under the skip button "+
             "and is based on the medals you have earned so far.");
-    UI::Text("If not stated otherwise, RMC rules apply.");
+    UI::Markdown("**If not stated otherwise, RMC rules apply.**");
     UI::PopFontSize();
     UI::NewLine();
     UI::PushFontSize(12);
-    UI::Text("Disclaimer:\nPre-release Alpha Version, be kind " + "\\$F00" + Icons::HeartO + "\\$z");
-    UI::Text("Credits:\nBuilt on and inspired by " + "\\$AAA" + "ManiaExchange Random Map Picker" + "\\$z");
+    UI::Markdown("**Disclaimer**");
+    UI::Text("Beta Version, be kind  " + "\\$F00" + Icons::HeartO + "\\$z");
+    UI::NewLine();
+    UI::Text("Built on and inspired by " + "\\$AAA" + "ManiaExchange Random Map Picker" + "\\$z");
     UI::PopFontSize();
 
     UI::Separator();
     auto label = Icons::Play + " Start ";
     UI::PushFontSize(20);
     if (UI::ButtonColored(label, 0.3f)) {
-        StartNewGame(DEFAULT_TIME, DEFAULT_MODE);
+        StartNewGame(SelectedChallengeMode);
     }
     UI::PopFontSize();
 }
@@ -166,12 +181,14 @@ void RenderTimer(const string icon, vec4 color, int64 value, int64 extraTimerSta
         UI::Text(icon); UI::SameLine();
         UI::PopFontSize();
 
+        auto pos = UI::GetCursorPos();
         UI::PushStyleColor(UI::Col::Text, color);
         UI::PushFontSize(38);
         UI::Text(clock(value)); UI::SameLine();
         UI::PopFontSize();
         UI::PopStyleColor();
 
+        UI::SetCursorPos(vec2(pos.x + 90, pos.y - 9));
         auto extraColor = fadeoutTimerColor(color, extraTimerStart);
         UI::PushStyleColor(UI::Col::Text, extraColor);
         UI::PushFontSize(15);
@@ -181,7 +198,7 @@ void RenderTimer(const string icon, vec4 color, int64 value, int64 extraTimerSta
 }
 
 void RenderPB() {
-    RenderTiny(Icons::Trophy, COLOR_GRAY_DARK, clock(PersonalBest));
+    RenderTiny(Icons::Trophy, COLOR_GRAY_DARK, clock(PersonalBest(SelectedChallengeMode)));
 }
 
 void RenderTinyTimer(const string icon, vec4 color, int64 time) {
@@ -202,7 +219,9 @@ void RenderTiny(const string icon, vec4 color, const string value) {
 
 
 string ProgressIcon() {
-    auto progress = float(gameTimerMs) / float(DEFAULT_TIME);
+    if (game is null) return Icons::HourglassO;
+
+    auto progress = float(game.timer) / float(DEFAULT_TIME);
     if (progress > 0.75f) {
         return Icons::HourglassStart;
     } else if (progress > 0.25f) {
@@ -226,17 +245,6 @@ void ShowLastScore(int64 score) {
 
 
 void DEBUG() {
-    UI::Separator();
-    UI::Text("AT: " + clock(currentMap.medals[Medals::Author]));
-    UI::Text("Gold: " + clock(currentMap.medals[Medals::Gold]));
-    UI::Text("Silver: " + clock(currentMap.medals[Medals::Silver]));
-    UI::Text("Bronze: " + clock(currentMap.medals[Medals::Bronze]));
-    UI::NewLine();
-    UI::Text("PB: " + clock(currentMap.pbFinishTime));
-    UI::Text("Last: " + clock(currentMap.lastFinishTime));
-    UI::Text("Medal: " + MedalName(currentMap.EarnedMedal()));
-    UI::NewLine();
-
-    UI::Separator();
-
+    RenderTimer(ProgressIcon(), COLOR_GREEN, ONE_HOUR - 1, Time::Now, -3*ONE_MINUTE);
+    RenderTimer(Icons::Tachometer, COLOR_YELLOW, ONE_HOUR - 1, Time::Now, ONE_MINUTE);
 }

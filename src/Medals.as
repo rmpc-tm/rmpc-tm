@@ -9,7 +9,7 @@ enum Medals {
 string MedalName(Medals medal) {
     switch(medal) {
         case Medals::Author:
-            return "AT";
+            return "Author";
         case Medals::Gold:
             return "Gold";
         case Medals::Silver:
