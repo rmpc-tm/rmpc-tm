@@ -1,3 +1,4 @@
+
 Challenge@ game = null;
 
 void Main() {
@@ -6,15 +7,14 @@ void Main() {
       return;
    }
    print("Starting: " + PLUGIN_NAME + "...");
-   // TODO start in a disabled mode?
-   Visible = true;
+   Visible = false;
 
    int64 lastDeltaAt = 0;
 
    while (true) {
       if (game !is null) {
          auto now = Time::Now;
-         auto delta = (lastDeltaAt==0)?0:now-lastDeltaAt;
+         auto delta = (lastDeltaAt == 0) ? 0 : now - lastDeltaAt;
          lastDeltaAt = now;
 
          game.Step(delta);
@@ -23,11 +23,20 @@ void Main() {
    }
 }
 
+void RenderMenu() {
+   if (UI::MenuItem(PLUGIN_NAME_WITH_ICON, "", Visible)) {
+      Visible = !Visible;
+      if (!Visible) {
+         @game = null;
+      }
+   }
+}
+
 void StartNewGame(ChallengeMode mode) {
-    @game = Challenge(mode);
-    game.Start();
+   @game = Challenge(mode);
+   game.Start();
 }
 
 void Reset() {
-    @game = null;
+   @game = null;
 }

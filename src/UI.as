@@ -13,8 +13,8 @@ void Render() {
     const int styleVarCount = 4;
     {
         UI::PushStyleVar(UI::StyleVar::WindowPadding, vec2(WINDOW_PADDING, WINDOW_PADDING));
-        UI::PushStyleVar(UI::StyleVar::WindowRounding, 5.0);
-        UI::PushStyleVar(UI::StyleVar::FramePadding, vec2(5, 5));
+        UI::PushStyleVar(UI::StyleVar::WindowRounding, 4.0);
+        UI::PushStyleVar(UI::StyleVar::FramePadding, vec2(4, 4));
         UI::PushStyleVar(UI::StyleVar::WindowTitleAlign, vec2(0.5, 0.5));
     }
     // UI::SetNextWindowSize(350, 600); // not compatible with UI::WindowFlags::AlwaysAutoResize
@@ -38,6 +38,7 @@ void DisplayGameScreen() {
     UI::NewLine();
     UI::Separator();
 
+    auto autoPaused = IsAutoPaused();
 
     int secondColumn = WINDOW_PADDING + 103;
     RenderTinyTimer(Icons::ClockO, COLOR_GRAY_LIGHT, game.TotalTimeSpent());
@@ -66,7 +67,9 @@ void DisplayGameScreen() {
 
         // Next Map
         UI::PushFontSize(18);
-        if (UI::ButtonColored(Icons::Forward + "  Next Map ", 0.860)) {
+        string nextLabel = Icons::Forward + "  Next Map ";
+        auto nextButton = game.IsPaused() ?DisabledButton(nextLabel) : UI::ButtonColored(nextLabel, 0.860f);
+        if (nextButton) {
             game.SkipToNextMap();
         }
         UI::PopFontSize();
@@ -74,7 +77,7 @@ void DisplayGameScreen() {
         // Cost
         UI::Text(Icons::HourglassHalf); UI::SameLine();
         auto penaltyLabel = currentSkipCost==0 ? "Free" : clock(currentSkipCost);
-        if (IsAutoPaused()) { penaltyLabel = "???"; }
+        if (autoPaused) { penaltyLabel = "???"; }
         UI::PushStyleColor(UI::Col::Text, COLOR_GREEN);
         UI::Text(penaltyLabel); UI::SameLine();
         UI::PopStyleColor();
@@ -89,6 +92,11 @@ void DisplayGameScreen() {
     RenderBottomRowButtons();
 }
 
+bool DisabledButton(const string label) {
+    UI::ButtonColored(label, 0.0f, 0.0f, 0.3f);
+    return false;
+}
+
 void RenderBottomRowButtons() {
     UI::PushFontSize(13);
     auto pauseLabel = game.IsPaused()?Icons::Play:Icons::Pause;
@@ -97,7 +105,9 @@ void RenderBottomRowButtons() {
     }
     UI::SameLine();
     UI::SetCursorPosX(92);
-    if (UI::ButtonColored(Icons::TimesCircleO + "Broken", 0.15f)) {
+    string brokenLabel = Icons::TimesCircleO + "Broken";
+    auto brokenButton = game.IsPaused() ? DisabledButton(brokenLabel) : UI::ButtonColored(brokenLabel, 0.15f);
+    if (brokenButton) {
         if (game.IsInProgress()) game.SkipBrokenMap();
     }
     UI::SameLine();
@@ -127,27 +137,41 @@ void DisplayStartScreen() {
     }
     UI::PopItemWidth();
     
-    UI::PushFontSize(14);
+    UI::PushFontSize(15);
     UI::SameLine();
     UI::SetCursorPosX(170);
     RenderPB();
     UI::NewLine();
     UI::Separator();
 
-    UI::Markdown("**Goal**  \nCollect Time ("+Icons::Tachometer+") until the Timer ("+Icons::HourglassStart+") runs out.");
-    UI::NewLine();
-    UI::Markdown("**Details**  \nYou only get scored if you beat the " + ModeMedalName(SelectedChallengeMode) + " time. The score you "+
-            "gain into your Time is calculated from map length and your finishing time. You can skip any map, "+
-            "but time may be substracted from the Timer. The cost is displayed under the skip button "+
-            "and is based on the medals you have earned so far.");
-    UI::Markdown("**If not stated otherwise, RMC rules apply.**");
+    UI::Markdown("**Goal**");
+    UI::Text("Collect Time ("+Icons::Tachometer+") until  \nthe Timer ("+Icons::HourglassStart+") runs out.");
+    // UI::NewLine();
+
+    auto detailsIcon = detailsHidden ? Icons::ChevronDown : Icons::ChevronUp;
+    if (UI::ButtonColored(detailsIcon + " Details ", 0, 0, 0.3)) {
+        detailsHidden = !detailsHidden;
+    }
     UI::PopFontSize();
+
+    if (!detailsHidden) {
+        UI::PushFontSize(13);
+        UI::Markdown("You only get scored if you beat the " + ModeMedalName(SelectedChallengeMode) + " time. The score you "+
+                "gain into your Time is calculated from the map length and your finishing time. You can skip any map, "+
+                "but time may be substracted from the Timer. The cost is displayed under the skip button "+
+                "and is based on your best finishing time.");
+        UI::Markdown("**If not stated otherwise, RMC rules apply.**");
+        UI::PopFontSize();
+    }
+
+    
     UI::NewLine();
     UI::PushFontSize(12);
     UI::Markdown("**Disclaimer**");
     UI::Text("Beta Version, be kind  " + "\\$F00" + Icons::HeartO + "\\$z");
     UI::NewLine();
-    UI::Text("Built on and inspired by " + "\\$AAA" + "ManiaExchange Random Map Picker" + "\\$z");
+    UI::Markdown("**Built on and inspired by**");
+    UI::Text("\\$AAA" + "ManiaExchange Random Map Picker" + "\\$z");
     UI::PopFontSize();
 
     UI::Separator();
@@ -221,7 +245,7 @@ void RenderTiny(const string icon, vec4 color, const string value) {
 string ProgressIcon() {
     if (game is null) return Icons::HourglassO;
 
-    auto progress = float(game.timer) / float(DEFAULT_TIME);
+    auto progress = float(game.timer) / float(ONE_HOUR);
     if (progress > 0.75f) {
         return Icons::HourglassStart;
     } else if (progress > 0.25f) {
@@ -243,8 +267,9 @@ void ShowLastScore(int64 score) {
     lastScore = score;
 }
 
-
 void DEBUG() {
     RenderTimer(ProgressIcon(), COLOR_GREEN, ONE_HOUR - 1, Time::Now, -3*ONE_MINUTE);
     RenderTimer(Icons::Tachometer, COLOR_YELLOW, ONE_HOUR - 1, Time::Now, ONE_MINUTE);
+    UI::ButtonColored("PAUSE", 0.25f);
+    DisabledButton("PLAY");
 }

@@ -16,10 +16,9 @@ const vec4 COLOR_PURPLISH = vec4(0.87f, 0.20f, 0.87f, 1.0f);
 const vec4 COLOR_MAIN = COLOR_PURPLISH;
 const vec4 COLOR_ERROR = COLOR_RED_ISH;
 
-const int64 ONE_MINUTE = 60 * 1000;
+const int64 ONE_SECOND = 1000;
+const int64 ONE_MINUTE = 60 * ONE_SECOND;
 const int64 ONE_HOUR = 60 * ONE_MINUTE;
-const int64 DEFAULT_TIME = ONE_HOUR;
-const string DEFAULT_MODE = "Author Time";
 
 const int64 DISPLAY_EXTRA_TIMER_FOR = 5 * 1000;
 const int64 DISPLAY_EXTRA_TIMER_FULL_APHA = 5 * 900;

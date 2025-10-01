@@ -127,17 +127,6 @@ class Challenge {
                                 map.TMObjective_BronzeTime
                             );
                 print("Changed current map to: " + currentMap.Details());
-                print(Text::StripFormatCodes(map.MapInfo.Name));
-                print(Text::StripFormatCodes(map.MapInfo.NameForUi));
-                print(Text::StripFormatCodes(map.MapName));
-                print(map.IdName);
-
-                print(clock(map.TMObjective_AuthorTime));
-                print(clock(map.TMObjective_GoldTime));
-                print(clock(map.TMObjective_SilverTime));
-                print(clock(map.TMObjective_BronzeTime));
-
-                print(map.MapInfo.MapUid);
             }
         }
     }
