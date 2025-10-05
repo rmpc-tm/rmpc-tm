@@ -2,6 +2,7 @@
 class Challenge {
     // config
     int64 startedAt = 0;
+    int64 finishedAt = 0;
     ChallengeMode _mode;
 
     // game status
@@ -21,7 +22,7 @@ class Challenge {
     int64 mapTimer = 0;
 
     // stats
-    array<int> finishedMaps(7, 0);
+    array<Medals> finishedMaps;
 
     Challenge() {};
     Challenge(ChallengeMode gameMode) {
@@ -72,8 +73,7 @@ class Challenge {
     }
 
     void SkipToNextMap() {
-        auto medalIndex = currentMap.HasFinished() ? currentMap.EarnedMedal() : SKIP_UNFINISHED_INDEX;
-        finishedMaps[medalIndex]++;
+        finishedMaps.InsertLast(currentMap.EarnedMedal());
 
         auto cost = currentMap.SkipCost(ModeMedal(_mode));
         if (ReduceTimer(cost)) {
@@ -136,6 +136,7 @@ class Challenge {
     void FinishGame() {
         isRunning = false;
         isFinished = true;
+        finishedAt = Time::Now;
         @currentMap = null;
         if (_score > PersonalBest(_mode)) {
             SavePersonalBest(_mode, _score);
@@ -164,7 +165,7 @@ class Challenge {
 
     void SkipBrokenMap() {
         _timer += CurrentTimeSpent();
-        finishedMaps[SKIP_BROKEN_INDEX]++;
+        finishedMaps.InsertLast(Medals::Broken);
         SwitchMap();
     }
 
@@ -210,8 +211,43 @@ class Challenge {
         return ModeMedal(_mode);
     }
 
-    int MedalStats(Medals medal) {
-        return finishedMaps[medal];
+    int MedalCount(Medals medal) {
+        int count = 0;
+        for (uint i=0; i < finishedMaps.Length; i++) {
+            if (finishedMaps[i] == medal) {
+                count++;
+            }
+        }
+        
+        return count;
+    }
+
+    // MapCount includes count of all maps except broken.
+    int MapCount() {
+        int count = 0;
+        for (uint i=0; i < finishedMaps.Length; i++) {
+            if (finishedMaps[i] > Medals::Broken) {
+                count++;
+            }
+        }
+        
+        return count;
+    }
+
+    // SkippedCount includes all maps that did not achieve target medal (or above), not including broken maps.
+    int SkippedCount() {
+        int count = 0;
+        for (uint i=0; i < finishedMaps.Length; i++) {
+            if (finishedMaps[i] < ModeMedal(game._mode) && finishedMaps[i] != Medals::Broken) {
+                count++;
+            }
+        }
+        
+        return count;
+    }
+
+    array<Medals> GetAllMedals() {
+        return finishedMaps;
     }
 
     int PossibleScoreMax() {
@@ -222,7 +258,15 @@ class Challenge {
         return currentMap.CalculateScore(0, ModeMedal(_mode));
     }
 
+    Medals CurrentMedal() {
+        return currentMap.EarnedMedal();
+    }
+
     string CurrentMapName() {
         return currentMap.name;
+    }
+
+    int64 TotalWorldTimeSpent() {
+        return finishedAt > 0 ? finishedAt - startedAt : Time::Now - startedAt;
     }
 }

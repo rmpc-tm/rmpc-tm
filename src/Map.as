@@ -59,7 +59,7 @@ class Map {
 
     Medals EarnedMedal() {
         if (pbFinishTime < 0) {
-            return Medals::None;
+            return Medals::Unfinished;
         }
 
         if (pbFinishTime <= medals[Medals::Author]) {
@@ -80,8 +80,8 @@ class Map {
 
     // helper for skipping costs
     int64 magic(Medals medal) {
-        int64 trimmed = Math::Min(medals[medal], MAX_MAP_LENGTH / 2);
-        return (trimmed / 2) + 22 * ONE_SECOND;
+        int64 trimmed = Math::Min(medals[medal], MAX_MAP_LENGTH  - 30);
+        return (trimmed / 3) + 30 * ONE_SECOND;
     }
 
     int64 SkipCost(Medals goal) {
@@ -96,20 +96,23 @@ class Map {
 
         int64 extra = goal == Medals::Author ? magic(Medals::Author) : 0;
 
-        // unfinished
-        if (pbFinishTime < 0) {
-            return medals[goal] + Math::Max(magic(Medals::Bronze), ONE_MINUTE) + 4 * magic(Medals::Bronze) + extra;
+        auto unfinishedPenalty =  Math::Max(magic(Medals::Bronze), ONE_MINUTE) +  magic(Medals::Bronze);
+        auto unfinishedCost = 2 * unfinishedPenalty + 3 * magic(Medals::Bronze) + extra;
+        if (earnedMedal == Medals::Unfinished) {
+            return unfinishedCost;
         }
 
-        int64 missingPenalty = Math::Min(pbFinishTime - medals[goal], medals[goal]);
+        int64 missingPenalty = Math::Min(pbFinishTime  - medals[goal], unfinishedPenalty);
 
         if (earnedMedal == Medals::None) {
-            return 4 * missingPenalty + magic(Medals::Gold) + magic(Medals::Silver) + magic(Medals::Bronze) + extra;
+            return Math::Min(
+                2 * missingPenalty + magic(Medals::Gold) + magic(Medals::Silver) + magic(Medals::Bronze) + extra,
+                Math::Max(int(0.9f * unfinishedCost), unfinishedCost - 30 * ONE_SECOND)
+            );
         }
 
-        /* Medals */
         if (earnedMedal == Medals::Bronze) {
-            return 3 * missingPenalty + magic(Medals::Gold) + magic(Medals::Silver) + extra;
+            return 2 * missingPenalty + magic(Medals::Gold) + magic(Medals::Silver) + extra;
         }
         if (earnedMedal == Medals::Silver) {
             return 2 * missingPenalty + magic(Medals::Gold) + extra;

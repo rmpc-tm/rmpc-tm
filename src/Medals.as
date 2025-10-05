@@ -1,13 +1,12 @@
 
-const int SKIP_UNFINISHED_INDEX = 5;
-const int SKIP_BROKEN_INDEX = 6;
-
 enum Medals {
-   None,
-   Bronze,
-   Silver,
-   Gold,
-   Author
+    Broken = -2,
+    Unfinished = -1,
+    None = 0, // Finsihed
+    Bronze,
+    Silver,
+    Gold,
+    Author
 }
 
 string MedalName(Medals medal) {
@@ -35,6 +34,10 @@ vec4 MedalColor(Medals medal) {
             return vec4(0.54, 0.60, 0.60, 1);
         case Medals::Bronze:
             return vec4(0.60, 0.40, 0.26, 1);
+        case Medals::Broken:
+            return COLOR_RED_ISH;
+        case Medals::Unfinished:
+            return COLOR_WHITE;
         default:
             return vec4(0.88, 0.88, 0.88, 1);
     }

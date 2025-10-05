@@ -11,10 +11,12 @@ const string PLUGIN_NAME_WITH_ICON = PLUGIN_ICON + " " + PLUGIN_NAME;
 const string SHORT_NAME_WITH_ICON = PLUGIN_ICON + " " + SHORT_NAME;
 
 
+const vec4 COLOR_WHITE = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 const vec4 COLOR_IDK_COLOR_NAMES = vec4(0.9f, 0.8f, 0.7f, 1.0f);
 const vec4 COLOR_GRAY_DARK = vec4(0.3f, 0.3f, 0.3f, 1.0f);
 const vec4 COLOR_GRAY_LIGHT = vec4(0.4f, 0.4f, 0.4f, 1.0f);
 const vec4 COLOR_GREEN = vec4(0.3f, 0.8f, 0.5f, 1.0f);
+const vec4 COLOR_DARK_GREEN = vec4(0.0f, 0.7f, 0.2f, 1.0f);
 const vec4 COLOR_YELLOW = vec4(0.9f, 0.9f, 0.3f, 1.0f);
 const vec4 COLOR_RED_ISH = vec4(0.9f, 0.1f, 0.2f, 1.0f);
 const vec4 COLOR_PURPLISH = vec4(0.87f, 0.20f, 0.87f, 1.0f);

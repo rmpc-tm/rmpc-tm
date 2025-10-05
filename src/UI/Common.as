@@ -4,15 +4,6 @@ bool DisabledButton(const string label) {
     return false;
 }
 
-void RenderUnfinishedIcon() {
-    auto pos = UI::GetCursorPos();
-    UI::Text(Icons::FlagCheckered);
-    UI::SetCursorPos(pos);
-    UI::PushStyleColor(UI::Col::Text, COLOR_RED_ISH);
-    UI::Text(Icons::Times); UI::SameLine();
-    UI::PopStyleColor();
-}
-
 void RenderPB() {
     RenderTiny(Icons::Trophy, COLOR_GRAY_DARK, clock(PersonalBest(SelectedChallengeMode)));
 }
@@ -56,4 +47,32 @@ void RenderTimer(const string icon, vec4 color, int64 value, int64 extraTimerSta
 
 string clock(int64 ms) {
     return Time::Format(ms, true, false, false, true);
+}
+
+void RenderMedalIcon(Medals medal) {
+    string icon;
+    switch(medal) {
+        case Medals::Broken:
+            icon = Icons::TimesCircleO;
+            break;
+        case Medals::Unfinished:
+        case Medals::None:
+            icon = Icons::FlagCheckered;
+            break;
+        default:
+            icon = Icons::Circle;
+            break;
+    }
+    auto pos = UI::GetCursorPos();
+    UI::PushStyleColor(UI::Col::Text, MedalColor(medal));
+    UI::Text(icon); UI::SameLine();
+    if (medal == Medals::Unfinished || medal == Medals::None) {
+        UI::SetCursorPos(pos);
+        auto fIcon = medal == Medals::Unfinished ? Icons::Times : Icons::Check;
+        auto fColor = medal == Medals::Unfinished ? COLOR_RED_ISH : COLOR_DARK_GREEN;
+        UI::PushStyleColor(UI::Col::Text, fColor);
+        UI::Text(fIcon); UI::SameLine();
+        UI::PopStyleColor();
+    }
+    UI::PopStyleColor();
 }

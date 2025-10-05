@@ -57,7 +57,9 @@ void SavePersonalBest(ChallengeMode mode, int64 score) {
     switch(mode) {
         case ChallengeMode::Author60:
             PersonalBestAuthor60 = score;
+            break;
         case ChallengeMode::Gold60:
             PersonalBestGold60 = score;
+            break;
     }
 }
