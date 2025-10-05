@@ -1,4 +1,8 @@
-const int WINDOW_PADDING = 10;
+const int WINDOW_PADDING = 8;
+const int WINDOW_WIDTH = 205;
+
+const string VERSION = Meta::ExecutingPlugin().Version;
+const int SCORING_VERSION = 1;
 
 const string PLUGIN_ICON = "\\$D3D" + Icons::Tachometer + "\\$z";
 const string PLUGIN_NAME = "Random Map Pace Challenge";
@@ -7,6 +11,7 @@ const string PLUGIN_NAME_WITH_ICON = PLUGIN_ICON + " " + PLUGIN_NAME;
 const string SHORT_NAME_WITH_ICON = PLUGIN_ICON + " " + SHORT_NAME;
 
 
+const vec4 COLOR_IDK_COLOR_NAMES = vec4(0.9f, 0.8f, 0.7f, 1.0f);
 const vec4 COLOR_GRAY_DARK = vec4(0.3f, 0.3f, 0.3f, 1.0f);
 const vec4 COLOR_GRAY_LIGHT = vec4(0.4f, 0.4f, 0.4f, 1.0f);
 const vec4 COLOR_GREEN = vec4(0.3f, 0.8f, 0.5f, 1.0f);

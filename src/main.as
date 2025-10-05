@@ -6,11 +6,13 @@ void Main() {
       UI::ShowNotification(PLUGIN_NAME, "Unable to play local maps.\n(Missing Club Access?)", COLOR_ERROR);
       return;
    }
-   print("Starting: " + PLUGIN_NAME + "...");
-   Visible = false;
+
+   if (ScoringVersion != SCORING_VERSION) {
+      PersonalBestAuthor60 = 0;
+      PersonalBestGold60 = 0;
+   }
 
    int64 lastDeltaAt = 0;
-
    while (true) {
       if (game !is null) {
          auto now = Time::Now;
@@ -27,7 +29,7 @@ void RenderMenu() {
    if (UI::MenuItem(PLUGIN_NAME_WITH_ICON, "", Visible)) {
       Visible = !Visible;
       if (!Visible) {
-         @game = null;
+         Reset();
       }
    }
 }

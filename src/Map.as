@@ -36,7 +36,11 @@ class Map {
         return HasFinished() && EarnedMedal() >= medal;
     }
 
-    int64 _calculateScore(int64 time, Medals medal) {
+    int MedalTime(Medals medal) {
+        return medals[medal];
+    }
+
+    int64 CalculateScore(int64 time, Medals medal) {
         const auto target = Math::Min(medals[medal], MAX_MAP_LENGTH);
         const auto finishTime = Math::Min(time, target);
         const auto cap = (time + target) / 2.0f;
@@ -50,7 +54,7 @@ class Map {
         if (medal == Medals::Gold && pbFinishTime < medals[Medals::Author]) {
             scoredTime = medals[Medals::Gold] - (medals[Medals::Author] - pbFinishTime);
         }
-        return _calculateScore(scoredTime, medal);
+        return CalculateScore(scoredTime, medal);
     }
 
     Medals EarnedMedal() {
@@ -90,29 +94,28 @@ class Map {
             return 0; // goal achieved
         }
 
-        int64 missing = medals[goal];
         int64 extra = goal == Medals::Author ? magic(Medals::Author) : 0;
 
         // unfinished
         if (pbFinishTime < 0) {
-            return missing + Math::Max(magic(Medals::Bronze), ONE_MINUTE) + 3 * magic(Medals::Bronze) + extra;
+            return medals[goal] + Math::Max(magic(Medals::Bronze), ONE_MINUTE) + 4 * magic(Medals::Bronze) + extra;
         }
 
-        missing = Math::Min(pbFinishTime - medals[goal], medals[goal]);
+        int64 missingPenalty = Math::Min(pbFinishTime - medals[goal], medals[goal]);
 
         if (earnedMedal == Medals::None) {
-            return missing + magic(Medals::Gold) + magic(Medals::Silver) + magic(Medals::Bronze) + extra;
+            return 4 * missingPenalty + magic(Medals::Gold) + magic(Medals::Silver) + magic(Medals::Bronze) + extra;
         }
 
         /* Medals */
         if (earnedMedal == Medals::Bronze) {
-            return missing + magic(Medals::Gold) + magic(Medals::Silver) + extra;
+            return 3 * missingPenalty + magic(Medals::Gold) + magic(Medals::Silver) + extra;
         }
         if (earnedMedal == Medals::Silver) {
-            return missing + magic(Medals::Gold) + extra;
+            return 2 * missingPenalty + magic(Medals::Gold) + extra;
         }
 
-        return missing; // Gold skip for Author
+        return missingPenalty; // Gold skip for Author
     }
 
     int64 TimeSpent() {

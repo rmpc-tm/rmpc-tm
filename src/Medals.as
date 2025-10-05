@@ -1,3 +1,7 @@
+
+const int SKIP_UNFINISHED_INDEX = 5;
+const int SKIP_BROKEN_INDEX = 6;
+
 enum Medals {
    None,
    Bronze,

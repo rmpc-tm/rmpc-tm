@@ -1,5 +1,8 @@
 [Setting hidden]
-bool Visible = true;
+bool Visible = false;
+
+[Setting hidden]
+int ScoringVersion = 1;
 
 [Setting hidden]
 int64 PersonalBestAuthor60 = 0;

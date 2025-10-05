@@ -12,20 +12,31 @@ void Render() {
 
     const int styleVarCount = 4;
     {
-        UI::PushStyleVar(UI::StyleVar::WindowPadding, vec2(WINDOW_PADDING, WINDOW_PADDING));
+        UI::PushStyleVar(UI::StyleVar::WindowPadding, vec2(WINDOW_PADDING, WINDOW_PADDING - 2));
         UI::PushStyleVar(UI::StyleVar::WindowRounding, 4.0);
         UI::PushStyleVar(UI::StyleVar::FramePadding, vec2(4, 4));
         UI::PushStyleVar(UI::StyleVar::WindowTitleAlign, vec2(0.5, 0.5));
     }
     // UI::SetNextWindowSize(350, 600); // not compatible with UI::WindowFlags::AlwaysAutoResize
     UI::Begin(SHORT_NAME_WITH_ICON, UI::WindowFlags::AlwaysAutoResize | UI::WindowFlags::NoScrollbar | UI::WindowFlags::NoCollapse);
+
+    UI::Dummy(vec2(WINDOW_WIDTH, 0));
+
     if (game is null) {
         DisplayStartScreen();
     } else {
         DisplayGameScreen();
+        DEBUG();
     }
 
     // DEBUG();
+
+    // UI::PushFontSize(9);
+    // UI::PushStyleColor(UI::Col::Text, COLOR_GRAY_DARK);
+    // UI::SetCursorPosY(170);
+    // UI::Text("Version: " + VERSION);
+    // UI::PopStyleColor();
+    // UI::PopFontSize();
 
     UI::End();
     UI::PopStyleVar(styleVarCount);
@@ -54,9 +65,24 @@ void DisplayGameScreen() {
     }
    
     if (game.IsInProgress()) {
-        auto currentSkipCost = game.CurrentSkipPenalty();
         UI::Separator();
+
+        // UI::Text(Icons::Map);
+        // UI::PushStyleColor(UI::Col::Text, COLOR_GRAY_LIGHT); UI::SameLine();
+        // const int maxMapNameLength = 22;
+        // UI::Text(game.CurrentMapName(), maxMapNameLength); UI::SameLine();
+        // game.CurrentMapName().Length > maxMapNameLength ? UI::Text("...") : UI::NewLine();
+        // UI::PopStyleColor();
+
+        UI::Text(Icons::Tachometer); UI::SameLine();
+        UI::PushStyleColor(UI::Col::Text, COLOR_GRAY_LIGHT);
+        UI::Text("+" + clock(game.PossibleScoreMin()) + "–" + clock(game.PossibleScoreMax())); UI::SameLine();
+        UI::PopStyleColor();
+        UI::NewLine();
+
+
         // Medals
+        RenderUnfinishedIcon();
         for( int m = Medals::None; m <= Medals::Author; m++ ) {
             auto color = game.HasMedal(Medals(m)) ? MedalColor(Medals(m)) : COLOR_GRAY_DARK;
             UI::PushStyleColor(UI::Col::Text, color);
@@ -75,8 +101,9 @@ void DisplayGameScreen() {
         UI::PopFontSize();
 
         // Cost
+        auto currentSkipCost = game.CurrentSkipPenalty();
         UI::Text(Icons::HourglassHalf); UI::SameLine();
-        auto penaltyLabel = currentSkipCost==0 ? "Free" : clock(currentSkipCost);
+        auto penaltyLabel = currentSkipCost >= -99 ? "Free" : clock(currentSkipCost);
         if (autoPaused) { penaltyLabel = "???"; }
         UI::PushStyleColor(UI::Col::Text, COLOR_GREEN);
         UI::Text(penaltyLabel); UI::SameLine();
@@ -139,7 +166,8 @@ void DisplayStartScreen() {
     
     UI::PushFontSize(15);
     UI::SameLine();
-    UI::SetCursorPosX(170);
+    // UI::SetCursorPosX(165);
+    UI::NewLine();
     RenderPB();
     UI::NewLine();
     UI::Separator();
@@ -241,6 +269,14 @@ void RenderTiny(const string icon, vec4 color, const string value) {
     UI::PopStyleColor();
 }
 
+void RenderUnfinishedIcon() {
+    auto pos = UI::GetCursorPos();
+    UI::Text(Icons::FlagCheckered);
+    UI::SetCursorPos(pos);
+    UI::PushStyleColor(UI::Col::Text, COLOR_RED_ISH);
+    UI::Text(Icons::Times); UI::SameLine();
+    UI::PopStyleColor();
+}
 
 string ProgressIcon() {
     if (game is null) return Icons::HourglassO;
@@ -256,7 +292,7 @@ string ProgressIcon() {
 }
 
 void ShowLastSkip(int64 cost) {
-    if (cost == 0) return;
+    if (cost >= -99) return;
     shownSkipCostTimerAt = Time::Now;
     lastSkipCost = cost;
 
@@ -268,8 +304,47 @@ void ShowLastScore(int64 score) {
 }
 
 void DEBUG() {
-    RenderTimer(ProgressIcon(), COLOR_GREEN, ONE_HOUR - 1, Time::Now, -3*ONE_MINUTE);
-    RenderTimer(Icons::Tachometer, COLOR_YELLOW, ONE_HOUR - 1, Time::Now, ONE_MINUTE);
-    UI::ButtonColored("PAUSE", 0.25f);
-    DisabledButton("PLAY");
+    if (game is null) return;
+    int skipUnfinishedCount = game.MedalStats(Medals(SKIP_UNFINISHED_INDEX));
+    auto pos = UI::GetCursorPos();
+    UI::Text(Icons::FlagCheckered);
+    UI::SetCursorPos(pos);
+    UI::PushStyleColor(UI::Col::Text, COLOR_RED_ISH);
+    UI::Text(Icons::Times); UI::SameLine();
+    UI::PopStyleColor();
+    UI::Text("" + skipUnfinishedCount);
+    UI::SameLine();
+
+    int totalSkipped = 0;
+    int totalFinished = 0;
+    for( int m = Medals::None; m <= Medals::Author; m++ ) {
+        auto mCount = game.MedalStats(Medals(m));
+        UI::PushStyleColor(UI::Col::Text, MedalColor(Medals(m)));
+        UI::Text((m == Medals::None?Icons::FlagCheckered:Icons::Circle)); UI::SameLine();
+        UI::PopStyleColor();
+        UI::Text("" + mCount);
+        if (m != Medals::None) UI::SameLine();
+        if (m >= game.TargetMedal()) {
+            totalFinished += mCount;
+        } else {
+            totalSkipped += mCount;
+        }
+    }
+    UI::NewLine();
+
+    UI::PushStyleColor(UI::Col::Text, COLOR_PURPLISH);
+    UI::Text(Icons::Forward); UI::SameLine();
+    UI::PopStyleColor();
+    UI::Text("" + (skipUnfinishedCount + totalSkipped));
+
+    UI::PushStyleColor(UI::Col::Text, COLOR_IDK_COLOR_NAMES);
+    UI::Text(Icons::Map); UI::SameLine();
+    UI::PopStyleColor();
+    UI::Text("" + (skipUnfinishedCount + totalSkipped + totalFinished));
+
+    int skipBrokenCount = game.MedalStats(Medals(SKIP_BROKEN_INDEX));
+    UI::PushStyleColor(UI::Col::Text, COLOR_RED_ISH);
+    UI::Text(Icons::TimesCircleO); UI::SameLine();
+    UI::PopStyleColor();
+    UI::Text("" + skipBrokenCount);
 }

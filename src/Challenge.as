@@ -21,7 +21,7 @@ class Challenge {
     int64 mapTimer = 0;
 
     // stats
-    
+    array<int> finishedMaps(7, 0);
 
     Challenge() {};
     Challenge(ChallengeMode gameMode) {
@@ -72,8 +72,10 @@ class Challenge {
     }
 
     void SkipToNextMap() {
+        auto medalIndex = currentMap.HasFinished() ? currentMap.EarnedMedal() : SKIP_UNFINISHED_INDEX;
+        finishedMaps[medalIndex]++;
+
         auto cost = currentMap.SkipCost(ModeMedal(_mode));
-        // TODO save finished map stats
         if (ReduceTimer(cost)) {
             FinishGame();
         } else {
@@ -134,6 +136,7 @@ class Challenge {
     void FinishGame() {
         isRunning = false;
         isFinished = true;
+        @currentMap = null;
         if (_score > PersonalBest(_mode)) {
             SavePersonalBest(_mode, _score);
         }
@@ -161,6 +164,7 @@ class Challenge {
 
     void SkipBrokenMap() {
         _timer += CurrentTimeSpent();
+        finishedMaps[SKIP_BROKEN_INDEX]++;
         SwitchMap();
     }
 
@@ -202,4 +206,23 @@ class Challenge {
         return totalGameTime;
     }
 
+    Medals TargetMedal() {
+        return ModeMedal(_mode);
+    }
+
+    int MedalStats(Medals medal) {
+        return finishedMaps[medal];
+    }
+
+    int PossibleScoreMax() {
+        return currentMap.CalculateScore(currentMap.MedalTime(ModeMedal(_mode)), ModeMedal(_mode));
+    }
+
+    int PossibleScoreMin() {
+        return currentMap.CalculateScore(0, ModeMedal(_mode));
+    }
+
+    string CurrentMapName() {
+        return currentMap.name;
+    }
 }
