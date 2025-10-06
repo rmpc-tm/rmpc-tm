@@ -1,3 +1,5 @@
+bool detailsHidden = true;
+
 // Main
 void Render() {
     if (!Visible) {

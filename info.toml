@@ -3,7 +3,7 @@ name        = "Random Map Pace Challenge"
 author      = "rplnt"
 category    = "TMX"
 
-version     = "0.0.1"
+version     = "0.1.0b"
 
 [script]
 dependencies = ["MXRandom"]

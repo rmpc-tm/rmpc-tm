@@ -1,3 +1,4 @@
+
 class Map {
     string name;
     string uid;
@@ -43,10 +44,16 @@ class Map {
     int64 CalculateScore(int64 time, Medals medal) {
         const auto target = Math::Min(medals[medal], MAX_MAP_LENGTH);
         const auto finishTime = Math::Min(time, target);
-        const auto cap = (time + target) / 2.0f;
-        const auto gradient = 2.0f;
 
-        return int64(cap + (target - cap) * Math::Pow(float(finishTime) / float(target), gradient));
+        const auto scoreGradient = 0.5f;
+        const auto cap = (finishTime + target) / 2.0f;
+        auto score = cap + (target - cap) * Math::Pow(float(finishTime) / float(target), scoreGradient);
+
+        const auto bonusGradient = 0.4f;
+        const auto bonusScale = 1.5f;
+        auto bonus = bonusScale * Math::Pow(MAX_MAP_LENGTH / target ** bonusGradient);
+
+        return int64(score + bonus + 3 * ONE_SECOND);
     }
 
     int64 Score(Medals medal) {
@@ -94,7 +101,7 @@ class Map {
             return 0; // goal achieved
         }
 
-        int64 extra = goal == Medals::Author ? magic(Medals::Author) : 0;
+        int64 extra = Math::Max(goal == Medals::Author ? magic(Medals::Author) : 0, 30 * ONE_SECOND);
 
         auto unfinishedPenalty =  Math::Max(magic(Medals::Bronze), ONE_MINUTE) +  magic(Medals::Bronze);
         auto unfinishedCost = 2 * unfinishedPenalty + 3 * magic(Medals::Bronze) + extra;

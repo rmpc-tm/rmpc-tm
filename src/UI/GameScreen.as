@@ -1,3 +1,6 @@
+const int64 DISPLAY_EXTRA_TIMER_FOR = 5 * 1000;
+const int64 DISPLAY_EXTRA_TIMER_FULL_APHA = 5 * 900;
+
 uint64 shownSkipCostTimerAt = 0;
 uint64 shownNewScoreTimerAt = 0;
 
@@ -34,7 +37,7 @@ void DisplayGameHeader() {
     int secondColumn = WINDOW_PADDING + 103;
     RenderTinyTimer(Icons::ClockO, game.IsFinished()?COLOR_WHITE:COLOR_GRAY_LIGHT, game.TotalTimeSpent());
     UI::SetCursorPosX(secondColumn);
-    RenderTinyTimer(Icons::ClockO, COLOR_GRAY_LIGHT, game.CurrentTimeSpent());
+    RenderTinyTimer(Icons::Map, COLOR_GRAY_LIGHT, game.CurrentTimeSpent());
     UI::NewLine();
 }
 
@@ -86,7 +89,7 @@ void DisplayFinishedScreen() {
     // UI::NewLine();
 
     // Stats
-    UI::PushStyleColor(UI::Col::Text, COLOR_IDK_COLOR_NAMES);
+    UI::PushStyleColor(UI::Col::Text, COLOR_TAN);
     UI::Text(Icons::Map); UI::SameLine();
     UI::PopStyleColor();
     UI::Text("" + game.MapCount());
