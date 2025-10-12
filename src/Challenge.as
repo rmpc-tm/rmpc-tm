@@ -33,7 +33,7 @@ class Challenge {
     void Start() {
         startedAt = Time::Now;
         _timer = ModeTimer(_mode) - 1; // sacrifice 1ms for less digits
-        print("Starting new game: " + _mode + " (" + _timer + ")");
+        print("Starting new game: " + _mode + " (" + clock(_timer) + ")");
         isRunning = true;
         SwitchMap();
     }
@@ -171,7 +171,7 @@ class Challenge {
 
     /* UX Helpers */
     bool IsInProgress() {
-        return isRunning; /// ?
+        return isRunning;
     }
 
     bool IsFinished() {
@@ -251,19 +251,18 @@ class Challenge {
     }
 
     int PossibleScoreMax() {
+        if (currentMap is null) return 0;
         return currentMap.CalculateScore(currentMap.MedalTime(ModeMedal(_mode)), ModeMedal(_mode));
     }
 
     int PossibleScoreMin() {
+        if (currentMap is null) return 0;
         return currentMap.CalculateScore(0, ModeMedal(_mode));
     }
 
     Medals CurrentMedal() {
+        if (currentMap is null) return Medals::None;
         return currentMap.EarnedMedal();
-    }
-
-    string CurrentMapName() {
-        return currentMap.name;
     }
 
     int64 TotalWorldTimeSpent() {
