@@ -1,5 +1,14 @@
 [Setting hidden]
-bool Visible = true;
+bool Visible = false;
 
 [Setting hidden]
-int64 PersonalBest = 0;
+int ScoringVersion = 1;
+
+[Setting hidden]
+int64 PersonalBestAuthor60 = 0;
+
+[Setting hidden]
+int64 PersonalBestGold60 = 0;
+
+[Setting hidden]
+ChallengeMode SelectedChallengeMode = ChallengeMode::Author60;

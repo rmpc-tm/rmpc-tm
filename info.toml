@@ -1,7 +1,9 @@
 [meta]
 name        = "Random Map Pace Challenge"
 author      = "rplnt"
-category    = "Race"
+category    = "TMX"
+
+version     = "0.1.0b"
 
 [script]
 dependencies = ["MXRandom"]
