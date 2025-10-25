@@ -33,7 +33,7 @@ void Render() {
 /* Start Screen */
 void DisplayStartScreen() {
     UI::PushFontSize(18);
-    UI::Text("Challenge Target");
+    UI::Text("Challenge Settings");
     UI::PopFontSize();
     UI::PushItemWidth(140);
     if(UI::BeginCombo("##ChallengeTarget", ModeName(SelectedChallengeMode))) {
@@ -42,10 +42,14 @@ void DisplayStartScreen() {
         UI::EndCombo();
     }
     UI::PopItemWidth();
-    
+
     UI::PushFontSize(15);
-    UI::SameLine();
-    // UI::SetCursorPosX(165);
+    CustomMaps = UI::Checkbox("Allow custom filters", CustomMaps);
+    UI::PushFontSize(12);
+    UI::Text("\\$AAA" + "Use map filters from MX Random" + "\\$z");
+    UI::PopFontSize();
+
+
     UI::NewLine();
     RenderPB();
     UI::NewLine();
@@ -84,7 +88,7 @@ void DisplayStartScreen() {
     auto label = Icons::Play + " Start ";
     UI::PushFontSize(20);
     if (UI::ButtonColored(label, 0.3f)) {
-        StartNewGame(SelectedChallengeMode);
+        StartNewGame(SelectedChallengeMode, CustomMaps);
     }
     UI::PopFontSize();
 }

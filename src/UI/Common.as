@@ -5,7 +5,9 @@ bool DisabledButton(const string label) {
 }
 
 void RenderPB() {
-    RenderTiny(Icons::Trophy, COLOR_GRAY_DARK, clock(PersonalBest(SelectedChallengeMode)));
+    const auto custom = (game !is null && game.CustomFiltersEnabled()) || CustomMaps;
+    const auto pb = custom ? "--:--.--" : clock(PersonalBest(SelectedChallengeMode));
+    RenderTiny(Icons::Trophy, COLOR_GRAY_DARK, pb);
 }
 
 void RenderTinyTimer(const string icon, vec4 color, int64 time) {

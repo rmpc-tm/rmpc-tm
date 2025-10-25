@@ -1,4 +1,3 @@
-
 Challenge@ game = null;
 
 void Main() {
@@ -6,6 +5,8 @@ void Main() {
       UI::ShowNotification(PLUGIN_NAME, "Unable to play local maps.\n(Missing Club Access?)", COLOR_ERROR);
       return;
    }
+   Visible = false;
+   CustomMaps = false;
 
    if (ScoringVersion != SCORING_VERSION) {
       PersonalBestAuthor60 = 0;
@@ -34,8 +35,8 @@ void RenderMenu() {
    }
 }
 
-void StartNewGame(ChallengeMode mode) {
-   @game = Challenge(mode);
+void StartNewGame(ChallengeMode mode, bool custom) {
+   @game = Challenge(mode, custom);
    game.Start();
 }
 
