@@ -1,3 +1,6 @@
+const bool DEV_MODE = Meta::IsDeveloperMode();
+const string RECORDS_URL = "https://openplanet.dev/plugin/randommappace/config/records";
+
 const int WINDOW_PADDING = 8;
 const int WINDOW_WIDTH = 205;
 

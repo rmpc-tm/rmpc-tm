@@ -42,6 +42,17 @@ string ModeName(ChallengeMode mode) {
     return ModeMedalName(mode) + " (1 Hour)";
 }
 
+void SavePersonalBest(ChallengeMode mode, int64 score) {
+    switch(mode) {
+        case ChallengeMode::Author60:
+            PersonalBestAuthor60 = score;
+            break;
+        case ChallengeMode::Gold60:
+            PersonalBestGold60 = score;
+            break;
+    }
+}
+
 int64 PersonalBest(ChallengeMode mode) {
     switch(mode) {
         case ChallengeMode::Author60:
@@ -53,13 +64,15 @@ int64 PersonalBest(ChallengeMode mode) {
     }
 }
 
-void SavePersonalBest(ChallengeMode mode, int64 score) {
+int64 WorldRecord(ChallengeMode mode) {
     switch(mode) {
         case ChallengeMode::Author60:
-            PersonalBestAuthor60 = score;
-            break;
+            return WRAuthor60;
         case ChallengeMode::Gold60:
-            PersonalBestGold60 = score;
-            break;
+            return WRGold60;
+        default:
+            return 0;
     }
 }
+
+

@@ -29,8 +29,7 @@ void DisplayGameHeader() {
     // Game Timers + PB
     RenderTimer(ProgressIcon(), COLOR_GREEN, game.timer, shownSkipCostTimerAt, lastSkipCost);
     RenderTimer(Icons::Tachometer, COLOR_YELLOW, game.score, shownNewScoreTimerAt, lastScore);
-    RenderPB();
-    UI::NewLine();
+    if (RenderPB()) UI::NewLine();
     UI::Separator();
 
     // Timers

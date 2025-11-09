@@ -142,6 +142,7 @@ class Challenge {
         @currentMap = null;
         if (!_custom && _score > PersonalBest(_mode)) {
             SavePersonalBest(_mode, _score);
+            startnew(SavePBAsync, _score);
         }
     }
 
@@ -273,5 +274,9 @@ class Challenge {
 
     int64 TotalWorldTimeSpent() {
         return finishedAt > 0 ? finishedAt - startedAt : Time::Now - startedAt;
+    }
+
+    ChallengeMode Mode() {
+        return _mode;
     }
 }

@@ -43,16 +43,8 @@ void DisplayStartScreen() {
     }
     UI::PopItemWidth();
 
-    UI::PushFontSize(15);
-    CustomMaps = UI::Checkbox("Allow custom filters", CustomMaps);
-    UI::PushFontSize(12);
-    UI::Text("\\$AAA" + "Use map filters from MX Random" + "\\$z");
-    UI::PopFontSize();
-
-
-    UI::NewLine();
-    RenderPB();
-    UI::NewLine();
+    if (RenderPB()) UI::NewLine();
+    if (RenderWR()) UI::NewLine();
     UI::Separator();
 
     UI::Markdown("**Goal**");
@@ -62,7 +54,6 @@ void DisplayStartScreen() {
     if (UI::ButtonColored(detailsIcon + " Details ", 0, 0, 0.3)) {
         detailsHidden = !detailsHidden;
     }
-    UI::PopFontSize();
 
     if (!detailsHidden) {
         UI::PushFontSize(13);
@@ -70,6 +61,7 @@ void DisplayStartScreen() {
                 "gain into your Time is calculated from the map length and your finishing time. You can skip any map, "+
                 "but time may be substracted from the Timer. The cost is displayed under the skip button "+
                 "and is based on your best finishing time.");
+        UI::NewLine();
         UI::Markdown("**If not stated otherwise, RMC rules apply.**");
         UI::PopFontSize();
     }
@@ -78,7 +70,7 @@ void DisplayStartScreen() {
     UI::NewLine();
     UI::PushFontSize(12);
     UI::Markdown("**Disclaimer**");
-    UI::Text("Beta Version, be kind  " + "\\$F00" + Icons::HeartO + "\\$z");
+    UI::Text("Early version, be kind  " + "\\$F00" + Icons::HeartO + "\\$z");
     UI::NewLine();
     UI::Markdown("**Built on and inspired by**");
     UI::Text("\\$AAA" + "ManiaExchange Random Map Picker" + "\\$z");
