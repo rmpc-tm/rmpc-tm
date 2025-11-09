@@ -4,8 +4,20 @@ bool DisabledButton(const string label) {
     return false;
 }
 
-void RenderPB() {
-    RenderTiny(Icons::Trophy, COLOR_GRAY_DARK, clock(PersonalBest(SelectedChallengeMode)));
+bool RenderPB() {
+    const auto custom = (game !is null && game.CustomFiltersEnabled()) || CustomMaps;
+    if (custom) return false;
+    const auto pb = PersonalBest(SelectedChallengeMode);
+    RenderTiny(Icons::Trophy, COLOR_GRAY_DARK, clock(pb));
+    return true;
+}
+
+bool RenderWR() {
+    const auto custom = (game !is null && game.CustomFiltersEnabled()) || CustomMaps;
+    const auto wr = WorldRecord(SelectedChallengeMode);
+    if (custom || wr == 0) return false;
+    RenderTiny(Icons::GlobeE, COLOR_GRAY_DARK, clock(wr));
+    return true;
 }
 
 void RenderTinyTimer(const string icon, vec4 color, int64 time) {

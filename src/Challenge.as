@@ -4,6 +4,7 @@ class Challenge {
     int64 startedAt = 0;
     int64 finishedAt = 0;
     ChallengeMode _mode;
+    bool _custom;
 
     // game status
     bool isRunning = false;
@@ -25,8 +26,9 @@ class Challenge {
     array<Medals> finishedMaps;
 
     Challenge() {};
-    Challenge(ChallengeMode gameMode) {
+    Challenge(ChallengeMode gameMode, bool custom) {
         _mode = gameMode;
+        _custom = custom;
     }
 
     // Start shuld be only called once.
@@ -138,8 +140,9 @@ class Challenge {
         isFinished = true;
         finishedAt = Time::Now;
         @currentMap = null;
-        if (_score > PersonalBest(_mode)) {
+        if (!_custom && _score > PersonalBest(_mode)) {
             SavePersonalBest(_mode, _score);
+            startnew(SavePBAsync, _score);
         }
     }
 
@@ -155,7 +158,7 @@ class Challenge {
     }
 
     void SwitchMap() {
-        MXRandom::LoadRandomMap(false);
+        MXRandom::LoadRandomMap(_custom);
     }
 
     /* Controlls */
@@ -180,6 +183,10 @@ class Challenge {
 
     bool IsPaused() {
         return isPaused;
+    }
+
+    bool CustomFiltersEnabled() {
+        return _custom;
     }
 
     bool HasMedal(Medals medal) {
@@ -267,5 +274,9 @@ class Challenge {
 
     int64 TotalWorldTimeSpent() {
         return finishedAt > 0 ? finishedAt - startedAt : Time::Now - startedAt;
+    }
+
+    ChallengeMode Mode() {
+        return _mode;
     }
 }

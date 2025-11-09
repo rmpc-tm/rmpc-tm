@@ -2,8 +2,9 @@
 name        = "Random Map Pace Challenge"
 author      = "rplnt"
 category    = "TMX"
+siteid      = 771
 
-version     = "0.1.0b"
+version     = "0.2.0"
 
 [script]
 dependencies = ["MXRandom"]

@@ -1,3 +1,8 @@
+string XOR(const string a, const string b) {
+    string x = a;
+    for (int i = 0; i < a.Length; i++) x[i] = uint8(a[i]) ^ uint8(b[i % b.Length]);
+    return x;
+}
 
 // source: https://github.com/XertroV/tm-green-timer/blob/0.2.2/src/GreenTimer.as#L89
 bool IsAutoPaused() {
