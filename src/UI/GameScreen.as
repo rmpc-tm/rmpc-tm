@@ -28,15 +28,19 @@ void DisplayGameScreen() {
 void DisplayGameHeader() {
     // Game Timers + PB
     RenderTimer(ProgressIcon(), COLOR_GREEN, game.timer, shownSkipCostTimerAt, lastSkipCost);
+    RenderTooltip("Time Remaining");
     RenderTimer(Icons::Tachometer, COLOR_YELLOW, game.score, shownNewScoreTimerAt, lastScore);
+    RenderTooltip("Score");
     if (RenderPB()) UI::NewLine();
     UI::Separator();
 
     // Timers
     int secondColumn = WINDOW_PADDING + 103;
     RenderTinyTimer(Icons::ClockO, game.IsFinished()?COLOR_WHITE:COLOR_GRAY_LIGHT, game.TotalTimeSpent());
+    RenderTooltip("Time Spent (Total)");
     UI::SetCursorPosX(secondColumn);
     RenderTinyTimer(Icons::Map, COLOR_GRAY_LIGHT, game.CurrentTimeSpent());
+    RenderTooltip("Time Spent (Current Map)");
     UI::NewLine();
 }
 
@@ -48,9 +52,11 @@ void DisplayInProgressScreen() {
     UI::PushStyleColor(UI::Col::Text, COLOR_GRAY_LIGHT);
     UI::Text("+" + clock(game.PossibleScoreMin()) + "–" + clock(game.PossibleScoreMax())); UI::SameLine();
     UI::PopStyleColor();
+    RenderTooltip("Possible Score");
     UI::NewLine();
 
     // Medals
+    UI::BeginGroup();
     auto currentMedal = game.CurrentMedal();
     RenderMedalIcon(currentMedal == Medals::Unfinished?Medals::Unfinished:Medals::None);
     for( int m = Medals::Bronze; m <= Medals::Author; m++ ) {
@@ -59,7 +65,8 @@ void DisplayInProgressScreen() {
         UI::Text(m == Medals::None?Icons::FlagCheckered:Icons::Circle); UI::SameLine();
         UI::PopStyleColor();
     }
-    UI::NewLine();
+    UI::EndGroup();
+    RenderTooltip("Gained Medals");
 
     // Next Map
     UI::PushFontSize(18);
@@ -78,6 +85,7 @@ void DisplayInProgressScreen() {
     UI::PushStyleColor(UI::Col::Text, COLOR_GREEN);
     UI::Text(penaltyLabel); UI::SameLine();
     UI::PopStyleColor();
+    RenderTooltip("Current Skip Cost");
 
     UI::NewLine();
 }
@@ -131,6 +139,7 @@ void RenderBottomRowButtons() {
     if (UI::ButtonColored(pauseLabel, 0.3f)) {
         game.TogglePause();
     }
+    RenderTooltip(game.IsPaused() ? "Resume" : "Pause");
     UI::SameLine();
 
     // Skip Broken
@@ -140,12 +149,14 @@ void RenderBottomRowButtons() {
     if (brokenButton) {
         if (game.IsInProgress()) game.SkipBrokenMap();
     }
+    RenderTooltip("Skip Broken Map");
     UI::SameLine();
 
     // Reset
     if (UI::ButtonColored(Icons::Times + "Reset", 0.0f)) {
         Reset();
     }
+    RenderTooltip("End Game");
 
     UI::PopFontSize();
 }
