@@ -75,6 +75,9 @@ class Challenge {
     }
 
     void SkipToNextMap() {
+        if (currentMap is null) {
+            return;
+        }
         finishedMaps.InsertLast(currentMap.EarnedMedal());
 
         auto cost = currentMap.SkipCost(ModeMedal(_mode));
@@ -140,8 +143,10 @@ class Challenge {
         isFinished = true;
         finishedAt = Time::Now;
         @currentMap = null;
-        if (!_custom && _score > PersonalBest(_mode)) {
-            SavePersonalBest(_mode, _score);
+        if (!_custom) {
+            if (score > PersonalBest(_mode)) {
+                SavePersonalBest(_mode, _score);
+            }
             startnew(SavePBAsync, _score);
         }
     }
