@@ -64,7 +64,7 @@ class Challenge {
 
         if (currentMap !is null && currentMap.EarnedMedal() >= ModeMedal(_mode) && !currentMap.done) {
             auto score = currentMap.Score(ModeMedal(_mode));
-            print("Got " + ModeMedalName(_mode) + " at " + currentMap.Details() + ", scoring " + clock(score));
+            print("Completed map " + currentMap.Details() + ", scoring " + clock(score));
             _score += score;
             currentMap.done = true;
             ShowLastScore(score); // UI
@@ -81,6 +81,7 @@ class Challenge {
         finishedMaps.InsertLast(currentMap.EarnedMedal());
 
         auto cost = currentMap.SkipCost(ModeMedal(_mode));
+        print("Skipped map " + currentMap.Details() + ", with a cost " + clock(cost));
         if (ReduceTimer(cost)) {
             FinishGame();
         } else {
@@ -147,7 +148,8 @@ class Challenge {
             if (score > PersonalBest(_mode)) {
                 SavePersonalBest(_mode, _score);
             }
-            startnew(SavePBAsync, _score);
+            GameData@ scoreData = GameData(_mode, score, totalGameTime, finishedMaps.Length);
+            startnew(SavePBAsync, scoreData);
         }
     }
 
