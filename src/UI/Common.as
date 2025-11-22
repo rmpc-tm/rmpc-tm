@@ -4,11 +4,19 @@ bool DisabledButton(const string label) {
     return false;
 }
 
+void RenderTooltip(const string text) {
+    if (UI::BeginItemTooltip()) {
+        UI::Text(text);
+        UI::EndTooltip();
+    }
+}
+
 bool RenderPB() {
     const auto custom = (game !is null && game.CustomFiltersEnabled()) || CustomMaps;
     if (custom) return false;
     const auto pb = PersonalBest(SelectedChallengeMode);
     RenderTiny(Icons::Trophy, COLOR_GRAY_DARK, clock(pb));
+    RenderTooltip("Personal Best");
     return true;
 }
 
@@ -17,6 +25,7 @@ bool RenderWR() {
     const auto wr = WorldRecord(SelectedChallengeMode);
     if (custom || wr == 0) return false;
     RenderTiny(Icons::GlobeE, COLOR_GRAY_DARK, clock(wr));
+    RenderTooltip("World Record");
     return true;
 }
 
@@ -25,6 +34,7 @@ void RenderTinyTimer(const string icon, vec4 color, int64 time) {
 }
 
 void RenderTiny(const string icon, vec4 color, const string value) {
+    UI::BeginGroup();
     UI::PushStyleColor(UI::Col::Text, color);
     UI::PushFontSize(15);
     UI::Text(icon);
@@ -34,27 +44,30 @@ void RenderTiny(const string icon, vec4 color, const string value) {
     UI::Text(value); UI::SameLine();
     UI::PopFontSize();
     UI::PopStyleColor();
+    UI::EndGroup(); UI::SameLine();
 }
 
 void RenderTimer(const string icon, vec4 color, int64 value, int64 extraTimerStart = 0, int64 extraValue = 0) {
-        UI::PushFontSize(15);
-        UI::Text(icon); UI::SameLine();
-        UI::PopFontSize();
+    UI::BeginGroup();
+    UI::PushFontSize(15);
+    UI::Text(icon); UI::SameLine();
+    UI::PopFontSize();
 
-        auto pos = UI::GetCursorPos();
-        UI::PushStyleColor(UI::Col::Text, color);
-        UI::PushFontSize(38);
-        UI::Text(clock(value)); UI::SameLine();
-        UI::PopFontSize();
-        UI::PopStyleColor();
+    auto pos = UI::GetCursorPos();
+    UI::PushStyleColor(UI::Col::Text, color);
+    UI::PushFontSize(38);
+    UI::Text(clock(value)); UI::SameLine();
+    UI::PopFontSize();
+    UI::PopStyleColor();
 
-        UI::SetCursorPos(vec2(pos.x + 90, pos.y - 9));
-        auto extraColor = fadeoutTimerColor(color, extraTimerStart);
-        UI::PushStyleColor(UI::Col::Text, extraColor);
-        UI::PushFontSize(15);
-        UI::Text((extraValue>0?"+":"") + clock(extraValue));
-        UI::PopFontSize();
-        UI::PopStyleColor();
+    UI::SetCursorPos(vec2(pos.x + 90, pos.y - 9));
+    auto extraColor = fadeoutTimerColor(color, extraTimerStart);
+    UI::PushStyleColor(UI::Col::Text, extraColor);
+    UI::PushFontSize(15);
+    UI::Text((extraValue>0?"+":"") + clock(extraValue));
+    UI::PopFontSize();
+    UI::PopStyleColor();
+    UI::EndGroup();
 }
 
 string clock(int64 ms) {
