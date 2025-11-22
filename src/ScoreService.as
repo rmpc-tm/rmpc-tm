@@ -29,6 +29,7 @@ class GameData {
         return data;
     }
 
+    // Use seconds for Gold so they don't occupy places in the leaderboard.
     int64 Score() {
         switch(game.Mode()) {
             case ChallengeMode::Author60:
@@ -40,6 +41,7 @@ class GameData {
         }
     }
 
+    // Add suffix to player id so each player can have two entries in leaderboard.
     string playerId() {
         switch(game.Mode()) {
             case ChallengeMode::Author60:
