@@ -4,7 +4,7 @@ author      = "rplnt"
 category    = "TMX"
 siteid      = 771
 
-version     = "0.2.1"
+version     = "0.2.2"
 
 [script]
 dependencies = ["MXRandom"]
