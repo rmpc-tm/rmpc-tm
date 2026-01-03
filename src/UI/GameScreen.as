@@ -91,10 +91,6 @@ void DisplayInProgressScreen() {
 }
 
 void DisplayFinishedScreen() {
-    // Real-world timer
-    // RenderTinyTimer(Icons::ClockO, COLOR_WHITE, game.TotalWorldTimeSpent());
-    // UI::NewLine();
-
     // Stats
     UI::PushStyleColor(UI::Col::Text, COLOR_TAN);
     UI::Text(Icons::Map); UI::SameLine();
@@ -117,7 +113,7 @@ void DisplayFinishedScreen() {
 
     // Complete Run
     auto detailsIcon = completeRunHidden ? Icons::ChevronDown : Icons::ChevronUp;
-    if (UI::ButtonColored(detailsIcon + " Complete run ", 0, 0, 0.3)) {
+    if (UI::ButtonColored(detailsIcon + " Full run ", 0, 0, 0.3)) {
         completeRunHidden = !completeRunHidden;
     }
 
