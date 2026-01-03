@@ -51,7 +51,7 @@ void DisplayStartScreen() {
     UI::Text("Collect Time ("+Icons::Tachometer+") until  \nthe Timer ("+Icons::HourglassStart+") runs out.");
 
     auto detailsIcon = detailsHidden ? Icons::ChevronDown : Icons::ChevronUp;
-    if (UI::ButtonColored(detailsIcon + " Details ", 0, 0, 0.3)) {
+    if (UI::ButtonColored(detailsIcon + " More Details ", 0, 0, 0.3)) {
         detailsHidden = !detailsHidden;
     }
 
@@ -66,11 +66,7 @@ void DisplayStartScreen() {
         UI::PopFontSize();
     }
 
-    
-    UI::NewLine();
     UI::PushFontSize(12);
-    UI::Markdown("**Disclaimer**");
-    UI::Text("Early version, be kind  " + "\\$F00" + Icons::HeartO + "\\$z");
     UI::NewLine();
     UI::Markdown("**Built on and inspired by**");
     UI::Text("\\$AAA" + "ManiaExchange Random Map Picker" + "\\$z");

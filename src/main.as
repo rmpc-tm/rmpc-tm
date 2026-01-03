@@ -30,11 +30,10 @@ void Main() {
 
    int64 lastDeltaAt = 0;
    while (true) {
+      auto now = Time::Now;
+      auto delta = (lastDeltaAt == 0) ? 0 : now - lastDeltaAt;
+      lastDeltaAt = now;
       if (game !is null) {
-         auto now = Time::Now;
-         auto delta = (lastDeltaAt == 0) ? 0 : now - lastDeltaAt;
-         lastDeltaAt = now;
-
          game.Step(delta);
       }
       yield();
