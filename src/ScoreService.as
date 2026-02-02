@@ -8,7 +8,6 @@ string SessionToken = "";
 // https://openplanet.dev/docs/reference/auth
 void AuthenticateAsync() {
     if (ScoreApiHost.Length == 0) {
-        print("Score API host not configured");
         return;
     }
 

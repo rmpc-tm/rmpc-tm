@@ -249,7 +249,7 @@ class Challenge {
         return count;
     }
 
-    // FinishedCount includes all maps achieved target medal (or above)
+    // FinishedCount includes all maps that achieved target medal (or above)
     int FinishedCount() {
         int count = 0;
         for (uint i=0; i < finishedMaps.Length; i++) {
