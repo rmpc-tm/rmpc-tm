@@ -16,16 +16,21 @@ bool RenderPB() {
     if (custom) return false;
     const auto pb = PersonalBest(SelectedChallengeMode);
     RenderTiny(Icons::Trophy, COLOR_GRAY_DARK, clock(pb));
-    RenderTooltip("Personal Best");
+    RenderTooltip("Personal Best (local)");
     return true;
 }
 
 bool RenderWR() {
     const auto custom = (game !is null && game.CustomFiltersEnabled()) || CustomMaps;
-    const auto wr = WorldRecord(SelectedChallengeMode);
-    if (custom || wr == 0) return false;
-    RenderTiny(Icons::GlobeE, COLOR_GRAY_DARK, clock(wr));
-    RenderTooltip("World Record");
+    auto wrData = GetWorldRecord(SelectedChallengeMode);
+    if (custom || wrData is null || wrData.score == 0) return false;
+    RenderTiny(Icons::GlobeE, COLOR_GRAY_DARK, clock(wrData.score));
+
+    string tooltipText = "World Record";
+    if (wrData.playerName.Length > 0) {
+        tooltipText += " by " + wrData.playerName;
+    }
+    RenderTooltip(tooltipText);
     return true;
 }
 

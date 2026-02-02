@@ -11,7 +11,7 @@ void Main() {
       return;
    }
 
-   startnew(LoadRecordsAsync);
+   startnew(LoadConfigAsync);
 
    CTrackManiaNetwork@ Network = cast<CTrackManiaNetwork>(GetApp().Network);
    if (Network !is null) {
@@ -58,8 +58,8 @@ void Reset() {
    @game = null;
 }
 
-void LoadRecordsAsync() {
-   auto req = Net::HttpGet(RECORDS_URL);
+void LoadConfigAsync() {
+   auto req = Net::HttpGet(OPENPLANET_CONFIG_URL);
    while (!req.Finished()) {
       yield();
    }
@@ -68,13 +68,43 @@ void LoadRecordsAsync() {
    auto jsonData = req.Json();
    if (jsonData is null) return;
 
-   auto wra = req.Json().Get("wra");
-   if (wra !is null) WRAuthor60 = wra;
-   auto wrg = req.Json().Get("wrg");
-   if (wrg !is null) WRGold60 = wrg;
-   auto gameId = req.Json().Get("_id");
-   if (gameId !is null) {
-      auto state = XOR(Text::DecodeBase64(gameId), RECORDS_URL);
-      GlobalState = state;
+   auto scoreHost = req.Json().Get("score_api_host");
+   if (scoreHost is null) {
+      print("Could not load score service host");
+      return;
+   }
+
+   ScoreApiHost = scoreHost;
+
+   LoadWorldRecordsAsync();
+   AuthenticateAsync();
+}
+
+void LoadWorldRecordsAsync() {
+   if (ScoreApiHost.Length == 0) return;
+
+   auto req = Net::HttpGet(ScoreApiHost + WORLD_RECORDS_PATH);
+   while (!req.Finished()) {
+      yield();
+   }
+
+   if (req.ResponseCode() != 200) return;
+   auto jsonData = req.Json();
+   if (jsonData is null) return;
+
+   auto authorData = jsonData.Get("author");
+   if (authorData !is null) {
+      WRAuthor60 = WorldRecord(
+         int64(authorData.Get("score")),
+         string(authorData.Get("player_name"))
+      );
+   }
+
+   auto goldData = jsonData.Get("gold");
+   if (goldData !is null) {
+      WRGold60 = WorldRecord(
+         int64(goldData.Get("score")),
+         string(goldData.Get("player_name"))
+      );
    }
 }

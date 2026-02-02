@@ -4,6 +4,18 @@ enum ChallengeMode {
     Gold60
 }
 
+class WorldRecord {
+    int64 score = 0;
+    string playerName = "";
+
+    WorldRecord() {}
+
+    WorldRecord(int64 s, const string &in name) {
+        score = s;
+        playerName = name;
+    }
+}
+
 int64 ModeTimer(ChallengeMode mode) {
     switch(mode) {
         case ChallengeMode::Author60:
@@ -64,15 +76,14 @@ int64 PersonalBest(ChallengeMode mode) {
     }
 }
 
-int64 WorldRecord(ChallengeMode mode) {
+WorldRecord@ GetWorldRecord(ChallengeMode mode) {
     switch(mode) {
         case ChallengeMode::Author60:
             return WRAuthor60;
         case ChallengeMode::Gold60:
             return WRGold60;
-        default:
-            return 0;
     }
+    return null;
 }
 
 

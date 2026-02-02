@@ -1,5 +1,6 @@
 const bool DEV_MODE = Meta::IsDeveloperMode();
-const string RECORDS_URL = "https://openplanet.dev/plugin/randommappace/config/records";
+const string OPENPLANET_CONFIG_URL = "https://openplanet.dev/plugin/randommappace/config/scores";
+const string WORLD_RECORDS_PATH = "/rmpc/api/worldrecords";
 
 const int WINDOW_PADDING = 8;
 const int WINDOW_WIDTH = 205;
