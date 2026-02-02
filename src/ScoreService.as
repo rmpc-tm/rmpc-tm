@@ -1,65 +1,77 @@
-const string entries_url = "https://api.simpleboards.dev/api/entries";
-const string xHeader = "x-api-key";
-const string k = "k"; const string i = "i";
+string ScoreApiHost = "";
+const string AuthPath = "/rmpc/api/auth";
+const string ScoresPath = "/rmpc/api/scores";
+
+string SessionToken = "";
+
+
+// https://openplanet.dev/docs/reference/auth
+void AuthenticateAsync() {
+    if (ScoreApiHost.Length == 0) {
+        print("Score API host not configured");
+        return;
+    }
+
+    auto token_task = Auth::GetToken();
+    while (!token_task.Finished()) {
+        yield();
+    }
+
+    string openplanetToken = token_task.Token();
+    if (openplanetToken.Length == 0) {
+        print("Failed to get Openplanet token");
+        return;
+    }
+
+    Json::Value bodyJson = Json::Object();
+    bodyJson["openplanet_token"] = openplanetToken;
+
+    auto req = Net::HttpRequest(ScoreApiHost + AuthPath, Json::Write(bodyJson));
+    req.Headers.Set("Content-Type", "application/json");
+    req.Start();
+
+    while (!req.Finished()) {
+        yield();
+    }
+
+    if (req.ResponseCode() == 200) {
+        auto response = Json::Parse(req.String());
+        SessionToken = response.Get("session_token");
+        print("Authentication successful");
+    } else {
+        print("Authentication failed: " + req.ResponseCode());
+    }
+}
 
 
 class GameData {
-    ChallengeMode mode;
+    string mode; // author, gold, custom
     int64 score;
     int64 duration;
     int64 mapCount;
+    int64 skippedCount;
 
-    GameData(ChallengeMode m, int64 s, int64 d, int64 mc) {
-        mode = m; score = s; duration = d; mapCount = mc;
-    }
-
-    // Metadata builds metadata string in the format "key1=value1,key2=value2"
-    string Metadata() {
-        auto data = "ver=" + Meta::ExecutingPlugin().Version;
-        string mod = "???";
-        if (game.Mode() == ChallengeMode::Gold60) {
-            mod = "gold";
-        } else if (game.Mode() == ChallengeMode::Author60) {
-            mod = "author";
+    GameData(ChallengeMode m, bool c, int64 s, int64 d, int64 mc, int64 sc) {
+        mode = ModeMedalName(m).ToLower();
+        if (c) {
+            mode = "custom";
         }
-        data += ",mod=" + mod;
-        data += ",cnt=" + Text::Format("%d", mapCount);
-        data += ",dur=" +  Text::Format("%d", duration / 1000);
-
-        return data;
+        score = s; duration = d; mapCount = mc; skippedCount = sc;
     }
 
-    // Use seconds for Gold so they don't occupy places in the leaderboard.
-    int64 Score() {
-        switch(game.Mode()) {
-            case ChallengeMode::Author60:
-                return score;
-            case ChallengeMode::Gold60:
-                return score / 1000;
-            default:
-                return 0;
-        }
+    Json::Value Metadata() {
+        Json::Value metadata = Json::Object();
+        metadata["ver"] = Meta::ExecutingPlugin().Version;
+        return metadata;
     }
 
-    // Add suffix to player id so each player can have two entries in leaderboard.
-    string playerId() {
-        switch(game.Mode()) {
-            case ChallengeMode::Author60:
-                return PlayerID;
-            case ChallengeMode::Gold60:
-                return PlayerID + "-gold";
-            default:
-                return PlayerID + "-unknwon";
-        }
-    }
-
-    // Prepare JSON payload for scoring service.
-    Json::Value AsJson() {
+    Json::Value AsJson() {      
         Json::Value bodyJson = Json::Object();
-        bodyJson["leaderboardId"] = XOR(Text::DecodeBase64(Json::Parse(GlobalState).Get(i)), i);
-        bodyJson["playerId"] = playerId();
-        bodyJson["playerDisplayName"] = PlayerName;
-        bodyJson["score"] = Score();
+        bodyJson["game_mode"] = mode;
+        bodyJson["score"] = score;
+        bodyJson["maps_completed"] = mapCount;
+        bodyJson["maps_skipped"] =  skippedCount;
+        bodyJson["duration_ms"] =  duration;
         bodyJson["metadata"] =  Metadata();
 
         return bodyJson;
@@ -70,15 +82,25 @@ class GameData {
 void SavePBAsync(ref@ gameData) {
     GameData@ data = cast<GameData>(gameData);
 
-    if (GlobalState.Length == 0 || game is null) return;
-    if (PlayerID.Length == 0) return;
+    if (SessionToken.Length == 0) {
+        print("Not authenticated");
+        return;
+    }
 
     auto bodyJson = data.AsJson();
 
-    auto req = Net::HttpRequest(entries_url, Json::Write(bodyJson));
-    req.Headers.Set(xHeader, XOR(Text::DecodeBase64(Json::Parse(GlobalState).Get(k)), k));
+    auto req = Net::HttpRequest(ScoreApiHost + ScoresPath, Json::Write(bodyJson));
+    req.Headers.Set("Content-Type", "application/json");
+    req.Headers.Set("Authorization", "Bearer " + SessionToken);
     req.Start();
+
     while (!req.Finished()) {
         yield();
+    }
+
+    if (req.ResponseCode() == 200 || req.ResponseCode() == 201) {
+        print("Score saved successfully");
+    } else {
+        print("Failed to save score: " + req.ResponseCode());
     }
 }

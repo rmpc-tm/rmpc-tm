@@ -148,9 +148,10 @@ class Challenge {
             if (score > PersonalBest(_mode)) {
                 SavePersonalBest(_mode, _score);
             }
-            GameData@ scoreData = GameData(_mode, score, totalGameTime, finishedMaps.Length);
-            startnew(SavePBAsync, scoreData);
         }
+
+        GameData@ scoreData = GameData(_mode, _custom, score, totalGameTime, FinishedCount(), SkippedCount());
+        startnew(SavePBAsync, scoreData);
     }
 
     // ReduceTimer reduces the main game timer by amount, returing true when 0 is reached.
@@ -248,11 +249,23 @@ class Challenge {
         return count;
     }
 
+    // FinishedCount includes all maps achieved target medal (or above)
+    int FinishedCount() {
+        int count = 0;
+        for (uint i=0; i < finishedMaps.Length; i++) {
+            if (finishedMaps[i] >= TargetMedal()) {
+                count++;
+            }
+        }
+        
+        return count;
+    }
+
     // SkippedCount includes all maps that did not achieve target medal (or above), not including broken maps.
     int SkippedCount() {
         int count = 0;
         for (uint i=0; i < finishedMaps.Length; i++) {
-            if (finishedMaps[i] < ModeMedal(game._mode) && finishedMaps[i] != Medals::Broken) {
+            if (finishedMaps[i] < TargetMedal() && finishedMaps[i] != Medals::Broken) {
                 count++;
             }
         }

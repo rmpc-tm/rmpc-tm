@@ -8,13 +8,13 @@ int ScoringVersion = 1;
 int64 PersonalBestAuthor60 = 0;
 
 [Setting hidden]
-int64 WRAuthor60 = 0;
+WorldRecord WRAuthor60;
 
 [Setting hidden]
 int64 PersonalBestGold60 = 0;
 
 [Setting hidden]
-int64 WRGold60 = 0;
+WorldRecord WRGold60;
 
 [Setting hidden]
 ChallengeMode SelectedChallengeMode = ChallengeMode::Author60;
