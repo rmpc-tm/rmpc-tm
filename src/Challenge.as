@@ -176,7 +176,7 @@ class Challenge {
         }
 
         // Save score online
-        if (score > 0) {
+        if (score > ONE_SECOND) {
             GameData@ scoreData = GameData(
                 _mode,
                 _custom,

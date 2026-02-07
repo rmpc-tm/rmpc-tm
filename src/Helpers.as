@@ -17,8 +17,9 @@ bool IsAutoPaused() {
 }
 
 // GetCurrentMap returns current root map.
-CGameCtnChallenge GetCurrentMap() {
+CGameCtnChallenge@ GetCurrentMap() {
     auto app = cast<CTrackMania>(GetApp());
+    if (app is null) return null;
     return app.RootMap;
 }
 
