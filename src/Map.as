@@ -25,10 +25,6 @@ class Map {
         return name + " [" + uid + "] AT=" + clock(medals[Medals::Author]);
     }
 
-    bool HasAT() {
-        return pbFinishTime >= 0 && pbFinishTime <= medals[Medals::Author];
-    }
-
     bool HasFinished() {
         return pbFinishTime >= 0;
     }
@@ -60,6 +56,7 @@ class Map {
 
     int64 Score(Medals medal) {
         int64 scoredTime = pbFinishTime;
+        // score adjustement for gold mode if author time is beaten
         if (medal == Medals::Gold && pbFinishTime < medals[Medals::Author]) {
             scoredTime = medals[Medals::Gold] - (medals[Medals::Author] - pbFinishTime);
         }

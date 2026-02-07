@@ -1,8 +1,7 @@
+
 Challenge@ game = null;
 
-string PlayerID = "";
-string PlayerName = "";
-string GlobalState = "";
+bool initialized = false;
 
 
 void Main() {
@@ -11,16 +10,8 @@ void Main() {
       return;
    }
 
-   startnew(LoadConfigAsync);
-
-   CTrackManiaNetwork@ Network = cast<CTrackManiaNetwork>(GetApp().Network);
-   if (Network !is null) {
-      PlayerID = Network.PlayerInfo.WebServicesUserId;
-      PlayerName = Text::StripFormatCodes(Network.PlayerInfo.Name);
-   }
-
    Visible = DEV_MODE;
-   CustomMaps = false;
+   CustomMaps = false; // reset custom maps setting to avoid accidental custom play (UI feedback is subtle)
 
    if (ScoringVersion != SCORING_VERSION) {
       PersonalBestAuthor60 = 0;
@@ -30,6 +21,13 @@ void Main() {
 
    int64 lastDeltaAt = 0;
    while (true) {
+      if (!initialized && Visible) {
+         // Delayed init to avoid network calls on startup when plugin is not in use
+         startnew(LoadConfigAsync);
+         initialized = true;
+      }
+
+
       auto now = Time::Now;
       auto delta = (lastDeltaAt == 0) ? 0 : now - lastDeltaAt;
       lastDeltaAt = now;
@@ -58,6 +56,7 @@ void Reset() {
    @game = null;
 }
 
+// LoadConfigAsync loads config from openplanet and then uses it to set up score service.
 void LoadConfigAsync() {
    auto req = Net::HttpGet(OPENPLANET_CONFIG_URL);
    while (!req.Finished()) {
@@ -68,7 +67,7 @@ void LoadConfigAsync() {
    auto jsonData = req.Json();
    if (jsonData is null) return;
 
-   auto scoreHost = req.Json().Get("score_api_host");
+   auto scoreHost = jsonData.Get("score_api_host");
    if (scoreHost is null) {
       print("Could not load score service host");
       return;

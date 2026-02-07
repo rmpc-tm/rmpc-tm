@@ -24,8 +24,6 @@ void Render() {
         DisplayGameScreen();
     }
 
-    DEBUG();
-
     UI::End();
     UI::PopStyleVar(styleVarCount);
 }
@@ -37,14 +35,18 @@ void DisplayStartScreen() {
     UI::PopFontSize();
     UI::PushItemWidth(140);
     if(UI::BeginCombo("##ChallengeTarget", ModeName(SelectedChallengeMode))) {
-        modeComboItem(ChallengeMode::Author60);
-        modeComboItem(ChallengeMode::Gold60);
+        GameModeComboItem(ChallengeMode::Author60);
+        GameModeComboItem(ChallengeMode::Gold60);
         UI::EndCombo();
     }
     UI::PopItemWidth();
 
-    if (RenderPB()) UI::NewLine();
-    if (RenderWR()) UI::NewLine();
+    if (CustomMaps) {
+        UI::Text("Custom filters enabled.");
+    } else {
+        if (RenderPB()) UI::NewLine();
+        if (RenderWR()) UI::NewLine();
+    }
     UI::Separator();
 
     UI::Markdown("**Goal**");
@@ -59,7 +61,7 @@ void DisplayStartScreen() {
         UI::PushFontSize(13);
         UI::Markdown("You only get scored if you beat the " + ModeMedalName(SelectedChallengeMode) + " time. The score you "+
                 "gain into your Time is calculated from the map length and your finishing time. You can skip any map, "+
-                "but time may be substracted from the Timer. The cost is displayed under the skip button "+
+                "but time may be subtracted from the Timer. The cost is displayed under the skip button "+
                 "and is based on your best finishing time.");
         UI::NewLine();
         UI::Markdown("**If not stated otherwise, RMC rules apply.**");
@@ -81,18 +83,10 @@ void DisplayStartScreen() {
     UI::PopFontSize();
 }
 
-void modeComboItem(ChallengeMode id) {
+void GameModeComboItem(ChallengeMode id) {
         UI::PushID(ModeName(id));
         if (UI::Selectable(ModeName(id), SelectedChallengeMode == id)) {
             SelectedChallengeMode = id;
         }
         UI::PopID();
-}
-
-
-void DEBUG() {
-    /* Main */
-    if (game is null) return;
-
-    /* Game */
 }

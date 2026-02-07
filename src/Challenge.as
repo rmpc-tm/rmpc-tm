@@ -1,3 +1,9 @@
+enum ChallengeState {
+    Unknown,
+    WaitingForMap,
+    InMap,
+}
+
 
 class Challenge {
     // config
@@ -11,6 +17,7 @@ class Challenge {
     bool isPaused = false;
     bool isFinished = false;
     Map@ currentMap = null;
+    ChallengeState state = ChallengeState::Unknown;
 
     // global counters
     int64 _timer = 0;
@@ -19,11 +26,9 @@ class Challenge {
     int64 get_score() { return _score; }
     int64 totalGameTime = 0;
 
-    // map timers
-    int64 mapTimer = 0;
-
     // stats
     array<Medals> finishedMaps;
+    array<string> brokenMaps;
 
     Challenge() {};
     Challenge(ChallengeMode gameMode, bool custom) {
@@ -31,12 +36,19 @@ class Challenge {
         _custom = custom;
     }
 
-    // Start shuld be only called once.
+    // Start should be only called once.
     void Start() {
-        startedAt = Time::Now;
+        startedAt = Time::Stamp;
         _timer = ModeTimer(_mode) - 1; // sacrifice 1ms for less digits
         print("Starting new game: " + _mode + " (" + clock(_timer) + ")");
         isRunning = true;
+
+        // Set current map, if any, to prevent detecting it before our map loads.
+        auto map = GetCurrentMap();
+        if (map !is null) {
+            @currentMap = Map(map.MapInfo, 1, 1, 1, 1);
+        }
+
         SwitchMap();
     }
 
@@ -48,21 +60,19 @@ class Challenge {
         // menu, etc...
         if (IsAutoPaused()) return;
 
-        // TODO - force skip?
-        IsMapValid();
-
         // tick
         if (ReduceTimer(delta)) {
             FinishGame();
         }
+
         totalGameTime += delta;
         if (currentMap !is null) {
             currentMap.timeSpent += delta;
         }
 
-        ValidateFinish();
-
-        if (currentMap !is null && currentMap.EarnedMedal() >= ModeMedal(_mode) && !currentMap.done) {
+        // Detect and validate finish, process it in the same frame.
+        bool validFinish = ValidateFinish();
+        if (validFinish && currentMap.EarnedMedal() >= ModeMedal(_mode) && !currentMap.done) {
             auto score = currentMap.Score(ModeMedal(_mode));
             print("Completed map " + currentMap.Details() + ", scoring " + clock(score));
             _score += score;
@@ -91,41 +101,57 @@ class Challenge {
         if (cost > 0) ShowLastSkip(-cost); // UI
     }
 
-    void ValidateFinish() {
+    // ValidateFinish detects map finish and updates finish time if PB, returns true if finish is detected.
+    bool warnOnce = false;
+    bool ValidateFinish() {
+        if (currentMap is null) {
+            return false;
+        }
+
         auto finishTime = GetFinishTime();
         if (finishTime >= 0 && finishTime != currentMap.lastFinishTime) {
+            if (!IsMapValid()) {
+                if (!warnOnce) {
+                    UI::ShowNotification(PLUGIN_NAME, "Invalid map detected, load correct map or reset\n" + currentMap.name, COLOR_ERROR);
+                    warnOnce = true;
+                }
+                return false;
+            }
             if (finishTime < currentMap.pbFinishTime || currentMap.pbFinishTime < 0) {
                 currentMap.pbFinishTime = finishTime;
             }      
             currentMap.lastFinishTime = finishTime;
 
             print("Finished map " + currentMap.Details() + " with time " + clock(currentMap.lastFinishTime) + " ("+  MedalName(currentMap.EarnedMedal()) +")");
-        }
-    }
-
-    bool invalidOnce = false;
-    bool IsMapValid() {
-        auto app = cast<CTrackMania>(GetApp());
-        auto map = app.RootMap;
-
-        if (currentMap is null || map is null) {
+            warnOnce = false;
             return true;
         }
+        return false;
+    }
 
-        if(currentMap.uid != map.MapInfo.MapUid) {
-            if (!invalidOnce) {
-                print("Invalid map detected:" + currentMap.uid + " != " + map.MapInfo.MapUid);
-                invalidOnce = true;
-            }
+    // IsMapValid is used for finish validation - returning false if the finish is not expected.
+    bool IsMapValid() {
+        if (state != ChallengeState::InMap) {
+            return false;
+        }
+        if (currentMap is null) {
+            return false;
+        }
+
+        auto map = GetCurrentMap();
+        if (map !is null && map.MapInfo.MapUid != currentMap.uid) {
             return false;
         }
 
         return true;
     }
 
+    // DetectMapChange will replace current map with a different map.
     void DetectMapChange() {
-        auto app = cast<CTrackMania>(GetApp());
-        auto map = app.RootMap;
+        if (state != ChallengeState::WaitingForMap) {
+            return;
+        }
+        auto map = GetCurrentMap();
         if(map !is null) {
             if (currentMap is null || currentMap.uid != map.MapInfo.MapUid) {
                 @currentMap = Map(map.MapInfo,
@@ -134,6 +160,7 @@ class Challenge {
                                 map.TMObjective_SilverTime,
                                 map.TMObjective_BronzeTime
                             );
+                state = ChallengeState::InMap;
                 print("Changed current map to: " + currentMap.Details());
             }
         }
@@ -144,17 +171,25 @@ class Challenge {
         isFinished = true;
         finishedAt = Time::Now;
         @currentMap = null;
-        if (!_custom) {
-            if (score > PersonalBest(_mode)) {
-                SavePersonalBest(_mode, _score);
-            }
+        if (!_custom && score > PersonalBest(_mode)) {
+            SavePersonalBest(_mode, _score);
         }
 
-        GameData@ scoreData = GameData(_mode, _custom, score, totalGameTime, FinishedCount(), SkippedCount());
+        // Save online score
+        GameData@ scoreData = GameData(
+            _mode,
+            _custom,
+            score,
+            startedAt,
+            totalGameTime,
+            FinishedCount(),
+            SkippedCount(),
+            MedalStats(),
+            brokenMaps);
         startnew(SavePBAsync, scoreData);
     }
 
-    // ReduceTimer reduces the main game timer by amount, returing true when 0 is reached.
+    // ReduceTimer reduces the main game timer by amount, returning true when 0 is reached.
     bool ReduceTimer(int64 amount) {
         _timer -= amount;
         if (_timer <= 0) {
@@ -166,17 +201,22 @@ class Challenge {
     }
 
     void SwitchMap() {
+        state = ChallengeState::WaitingForMap;
         MXRandom::LoadRandomMap(_custom);
     }
 
-    /* Controlls */
+    /* Controls */
     void TogglePause() {
         isPaused = !isPaused;
     }
 
     void SkipBrokenMap() {
-        _timer += CurrentTimeSpent();
-        finishedMaps.InsertLast(Medals::Broken);
+        if (state == ChallengeState::InMap) {
+            _timer += CurrentTimeSpent();
+            finishedMaps.InsertLast(Medals::Broken);
+            brokenMaps.InsertLast(currentMap.uid);
+        }
+
         SwitchMap();
     }
 
@@ -237,6 +277,20 @@ class Challenge {
         return count;
     }
 
+    // MedalStats returns a dictionary of medal counts from finished maps.
+    dictionary@ MedalStats() {
+        dictionary stats;
+        for (uint i = 0; i < finishedMaps.Length; i++) {
+            auto key = MedalName(finishedMaps[i]).ToLower();
+            if (stats.Exists(key)) {
+                stats[key] = int(stats[key]) + 1;
+            } else {
+                stats[key] = 1;
+            }
+        }
+        return stats;
+    }
+
     // MapCount includes count of all maps except broken.
     int MapCount() {
         int count = 0;
@@ -284,7 +338,7 @@ class Challenge {
 
     int PossibleScoreMin() {
         if (currentMap is null) return 0;
-        return currentMap.CalculateScore(0, ModeMedal(_mode));
+        return currentMap.CalculateScore(100, ModeMedal(_mode));
     }
 
     Medals CurrentMedal() {
@@ -292,11 +346,12 @@ class Challenge {
         return currentMap.EarnedMedal();
     }
 
-    int64 TotalWorldTimeSpent() {
-        return finishedAt > 0 ? finishedAt - startedAt : Time::Now - startedAt;
-    }
-
     ChallengeMode Mode() {
         return _mode;
+    }
+
+    string CurrentMapName() {
+        if (currentMap is null) return "";
+        return currentMap.name;
     }
 }

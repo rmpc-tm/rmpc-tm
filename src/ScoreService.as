@@ -44,36 +44,56 @@ void AuthenticateAsync() {
 
 
 class GameData {
-    string mode; // author, gold, custom
-    int64 score;
-    int64 duration;
-    int64 mapCount;
-    int64 skippedCount;
+    Json::Value data;
 
-    GameData(ChallengeMode m, bool c, int64 s, int64 d, int64 mc, int64 sc) {
-        mode = ModeMedalName(m).ToLower();
-        if (c) {
-            mode = "custom";
+    GameData(
+        ChallengeMode mode,
+        bool custom,
+        int64 score,
+        int64 startTime,
+        int64 duration,
+        int64 completedMaps,
+        int64 skippedMaps,
+        dictionary medalStats,
+        array<string> brokenMaps) {
+
+        // author, gold, custom
+        string gameMode = ModeMedalName(mode).ToLower();
+        if (custom) {
+            gameMode = "custom";
         }
-        score = s; duration = d; mapCount = mc; skippedCount = sc;
-    }
 
-    Json::Value Metadata() {
+        data = Json::Object();
+        data["game_mode"] = gameMode;
+        data["score"] = score;
+        data["maps_completed"] = completedMaps;
+        data["maps_skipped"] =  skippedMaps;
+        data["duration_ms"] =  duration;
+
         Json::Value metadata = Json::Object();
         metadata["ver"] = Meta::ExecutingPlugin().Version;
-        return metadata;
+        metadata["start"] = startTime;
+        metadata["medals"] = medalStats;
+        if (brokenMaps.Length > 0) metadata["broken_sample"] = SampleMaps(brokenMaps, 3);
+
+        data["metadata"] =  metadata;
+    }
+
+    array<string> SampleMaps(array<string> maps, uint count) {
+        if (maps.Length <= count) {
+            return maps;
+        }
+
+        array<string> sample;
+        for (uint i=0; i < count; i++) {
+            sample.InsertLast(maps[Math::Rand(0, maps.Length - 1)]);
+        }
+
+        return sample;
     }
 
     Json::Value AsJson() {      
-        Json::Value bodyJson = Json::Object();
-        bodyJson["game_mode"] = mode;
-        bodyJson["score"] = score;
-        bodyJson["maps_completed"] = mapCount;
-        bodyJson["maps_skipped"] =  skippedCount;
-        bodyJson["duration_ms"] =  duration;
-        bodyJson["metadata"] =  Metadata();
-
-        return bodyJson;
+        return this.data;
     }
 }
 
