@@ -50,7 +50,7 @@ void DisplayStartScreen() {
     UI::Separator();
 
     UI::Markdown("**Goal**");
-    UI::Text("Collect Time ("+Icons::Tachometer+") until  \nthe Timer ("+Icons::HourglassStart+") runs out.");
+    UI::Text("Collect Time "+Icons::Tachometer+" until  \nyour Time "+Icons::HourglassStart+" runs out.");
 
     auto detailsIcon = detailsHidden ? Icons::ChevronDown : Icons::ChevronUp;
     if (UI::ButtonColored(detailsIcon + " More Details ", 0, 0, 0.3)) {
@@ -59,19 +59,27 @@ void DisplayStartScreen() {
 
     if (!detailsHidden) {
         UI::PushFontSize(13);
-        UI::Markdown("You only get scored if you beat the " + ModeMedalName(SelectedChallengeMode) + " time. The score you "+
-                "gain into your Time is calculated from the map length and your finishing time. You can skip any map, "+
-                "but time may be subtracted from the Timer. The cost is displayed under the skip button "+
-                "and is based on your best finishing time.");
-        UI::NewLine();
-        UI::Markdown("**If not stated otherwise, RMC rules apply.**");
+        UI::Markdown("Finish maps to earn Score (" + Icons::Tachometer + "). " +
+                "Longer maps give more. " +
+                "You can skip any map at any time — " +
+                "skipping costs remaining Timer (" + Icons::HourglassStart + ") " +
+                "based on how close to the goal you got.");
+        UI::PushFontSize(3); UI::NewLine(); UI::PopFontSize();
+        UI::Markdown("Read more in plugin description.");
         UI::PopFontSize();
+    }
+
+    if (ScoreApiHost != "") {
+        UI::PushFontSize(3); UI::NewLine(); UI::PopFontSize();
+        UI::Text(Icons::Kenney::PodiumAlt); UI::SameLine();
+        auto leaderBoardURL = ScoreApiHost + "/rmpc";
+        UI::TextLinkOpenURL("Leaderboard", leaderBoardURL);
+        RenderTooltip(leaderBoardURL);
     }
 
     UI::PushFontSize(12);
     UI::NewLine();
-    UI::Markdown("**Built on and inspired by**");
-    UI::Text("\\$AAA" + "ManiaExchange Random Map Picker" + "\\$z");
+    UI::Text("\\$AAA" + "Requires MX Random Map Picker" + "\\$z");
     UI::PopFontSize();
 
     UI::Separator();

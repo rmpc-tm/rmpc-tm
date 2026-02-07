@@ -175,18 +175,20 @@ class Challenge {
             SavePersonalBest(_mode, _score);
         }
 
-        // Save online score
-        GameData@ scoreData = GameData(
-            _mode,
-            _custom,
-            score,
-            startedAt,
-            totalGameTime,
-            FinishedCount(),
-            SkippedCount(),
-            MedalStats(),
-            brokenMaps);
-        startnew(SavePBAsync, scoreData);
+        // Save score online
+        if (score > 0) {
+            GameData@ scoreData = GameData(
+                _mode,
+                _custom,
+                score,
+                startedAt,
+                totalGameTime,
+                FinishedCount(),
+                SkippedCount(),
+                MedalStats(),
+                brokenMaps);
+            startnew(SavePBAsync, scoreData);
+        }
     }
 
     // ReduceTimer reduces the main game timer by amount, returning true when 0 is reached.
