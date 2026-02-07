@@ -1,5 +1,5 @@
 const int64 DISPLAY_EXTRA_TIMER_FOR = 5 * 1000;
-const int64 DISPLAY_EXTRA_TIMER_FULL_APHA = 5 * 900;
+const int64 DISPLAY_EXTRA_TIMER_FULL_ALPHA = 5 * 900;
 
 uint64 shownSkipCostTimerAt = 0;
 uint64 shownNewScoreTimerAt = 0;
@@ -47,13 +47,27 @@ void DisplayGameHeader() {
 void DisplayInProgressScreen() {
     auto autoPaused = IsAutoPaused();
 
+    if (DEV_MODE) {
+        // Map name
+        UI::BeginGroup();
+        UI::PushFontSize(12);
+        UI::PushStyleColor(UI::Col::Text, COLOR_GRAY_LIGHT);
+        UI::Text(game.CurrentMapName(), 35); UI::SameLine();
+        UI::PopStyleColor();
+        UI::PopFontSize();
+        UI::EndGroup();
+        RenderTooltip("Current Map");
+    }
+
     // Possible bonus
+    UI::BeginGroup();
     UI::Text(Icons::Tachometer); UI::SameLine();
     UI::PushStyleColor(UI::Col::Text, COLOR_GRAY_LIGHT);
-    UI::Text("+" + clock(game.PossibleScoreMin()) + "–" + clock(game.PossibleScoreMax())); UI::SameLine();
+    auto possibleScore = autoPaused?"???":"+" + clock(game.PossibleScoreMin()) + "–" + clock(game.PossibleScoreMax());
+    UI::Text(possibleScore); UI::SameLine();
     UI::PopStyleColor();
-    RenderTooltip("Possible Score");
-    UI::NewLine();
+    UI::EndGroup();
+    RenderTooltip("Max Possible Score");
 
     // Medals
     UI::BeginGroup();
@@ -71,13 +85,14 @@ void DisplayInProgressScreen() {
     // Next Map
     UI::PushFontSize(18);
     string nextLabel = Icons::Forward + "  Next Map ";
-    auto nextButton = game.IsPaused() ?DisabledButton(nextLabel) : UI::ButtonColored(nextLabel, 0.860f);
+    auto nextButton = game.IsPaused() ? DisabledButton(nextLabel) : UI::ButtonColored(nextLabel, 0.860f);
     if (nextButton) {
         game.SkipToNextMap();
     }
     UI::PopFontSize();
 
     // Cost
+    UI::BeginGroup();
     auto currentSkipCost = game.CurrentSkipPenalty();
     UI::Text(Icons::HourglassHalf); UI::SameLine();
     auto penaltyLabel = currentSkipCost >= -99 ? "Free" : clock(currentSkipCost);
@@ -85,9 +100,8 @@ void DisplayInProgressScreen() {
     UI::PushStyleColor(UI::Col::Text, COLOR_GREEN);
     UI::Text(penaltyLabel); UI::SameLine();
     UI::PopStyleColor();
+    UI::EndGroup();
     RenderTooltip("Current Skip Cost");
-
-    UI::NewLine();
 }
 
 void DisplayFinishedScreen() {
@@ -159,8 +173,7 @@ void RenderBottomRowButtons() {
 
 string ProgressIcon() {
     if (game is null) return Icons::HourglassO;
-
-    auto progress = float(game.TotalTimeSpent()) / float(ONE_HOUR); // TODO hardcoded
+    auto progress = 1 - float(game.TotalTimeSpent()) / float(ONE_HOUR); // TODO hardcoded
     if (progress > 0.75f) {
         return Icons::HourglassStart;
     } else if (progress > 0.25f) {
@@ -187,10 +200,10 @@ vec4 fadeoutTimerColor(vec4 bc, int64 t) {
     if (td > DISPLAY_EXTRA_TIMER_FOR) {
         return vec4(0,0,0,0);
     }
-    if (td < DISPLAY_EXTRA_TIMER_FULL_APHA) {
+    if (td < DISPLAY_EXTRA_TIMER_FULL_ALPHA) {
         return bc;
     }
 
-    auto alpha = float(DISPLAY_EXTRA_TIMER_FOR - td) / float(DISPLAY_EXTRA_TIMER_FOR - DISPLAY_EXTRA_TIMER_FULL_APHA);
+    auto alpha = float(DISPLAY_EXTRA_TIMER_FOR - td) / float(DISPLAY_EXTRA_TIMER_FOR - DISPLAY_EXTRA_TIMER_FULL_ALPHA);
     return vec4(bc.x, bc.y, bc.z, Math::Max(alpha, 0));
 }

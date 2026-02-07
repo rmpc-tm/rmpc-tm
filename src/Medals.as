@@ -2,11 +2,11 @@
 enum Medals {
     Broken = -2,
     Unfinished = -1,
-    None = 0, // Finsihed
+    None = 0, // Finished
     Bronze,
     Silver,
     Gold,
-    Author
+    Author,
 }
 
 string MedalName(Medals medal) {
