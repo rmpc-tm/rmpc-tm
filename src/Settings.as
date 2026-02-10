@@ -11,10 +11,16 @@ int64 PersonalBestAuthor60 = 0;
 WorldRecord WRAuthor60;
 
 [Setting hidden]
+WorldRecord WRAuthor60Month;
+
+[Setting hidden]
 int64 PersonalBestGold60 = 0;
 
 [Setting hidden]
 WorldRecord WRGold60;
+
+[Setting hidden]
+WorldRecord WRGold60Month;
 
 [Setting hidden]
 ChallengeMode SelectedChallengeMode = ChallengeMode::Author60;

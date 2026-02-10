@@ -36,7 +36,6 @@ void AuthenticateAsync() {
     if (req.ResponseCode() == 200) {
         auto response = Json::Parse(req.String());
         SessionToken = response.Get("session_token");
-        print("Authentication successful");
     } else {
         print("Authentication failed: " + req.ResponseCode());
     }

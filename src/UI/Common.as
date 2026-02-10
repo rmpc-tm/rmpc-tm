@@ -15,23 +15,29 @@ bool RenderPB() {
     const auto custom = (game !is null && game.CustomFiltersEnabled()) || CustomMaps;
     if (custom) return false;
     const auto pb = PersonalBest(SelectedChallengeMode);
-    RenderTiny(Icons::Trophy, COLOR_GRAY_DARK, clock(pb));
+    RenderTiny(Icons::Trophy, COLOR_GRAY_LIGHT, clock(pb));
     RenderTooltip("Personal Best (local)");
     return true;
 }
 
-bool RenderWR() {
+void RenderWRs() {
     const auto custom = (game !is null && game.CustomFiltersEnabled()) || CustomMaps;
-    auto wrData = GetWorldRecord(SelectedChallengeMode);
-    if (custom || wrData is null || wrData.score == 0) return false;
-    RenderTiny(Icons::GlobeE, COLOR_GRAY_DARK, clock(wrData.score));
+    if (custom) return;
 
-    string tooltipText = "World Record";
-    if (wrData.playerName.Length > 0) {
-        tooltipText += " by " + wrData.playerName;
+    RenderSingleWR(Icons::GlobeE, GetWorldRecord(SelectedChallengeMode, true), "All Time");
+    RenderSingleWR(Icons::Calendar, GetWorldRecord(SelectedChallengeMode, false), "Current Month");
+}
+
+void RenderSingleWR(const string icon, WorldRecord data, const string period) {
+    if (data is null || data.score == 0) return;
+    RenderTiny(icon, COLOR_GRAY_LIGHT, clock(data.score));
+    RenderTooltip(period);
+    if (data.playerName.Length > 0) {
+        UI::PushFontSize(12);
+        UI::Text("(" + data.playerName + ")"); UI::SameLine();
+        UI::PopFontSize();
     }
-    RenderTooltip(tooltipText);
-    return true;
+    UI::NewLine();
 }
 
 void RenderTinyTimer(const string icon, vec4 color, int64 time) {

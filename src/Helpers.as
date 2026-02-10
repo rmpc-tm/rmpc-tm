@@ -2,6 +2,10 @@
 bool IsAutoPaused() {
     auto app = GetApp();
 
+    if (cast<CTrackMania>(app).ManiaPlanetScriptAPI.ActiveContext_InGameMenuDisplayed) {
+        return true;
+    }
+
     bool inPG = app.CurrentPlayground !is null;
     if ((app.Editor !is null && !inPG)) {
         return true;

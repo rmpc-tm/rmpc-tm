@@ -26,20 +26,24 @@ void DisplayGameScreen() {
 }
 
 void DisplayGameHeader() {
+    bool paused = game.isPaused || IsAutoPaused();
     // Game Timers + PB
-    RenderTimer(ProgressIcon(), COLOR_GREEN, game.timer, shownSkipCostTimerAt, lastSkipCost);
+    vec4 timerColor;
+    timerColor = paused ? COLOR_GRAY_LIGHT : COLOR_GREEN;
+    RenderTimer(ProgressIcon(), timerColor, game.timer, shownSkipCostTimerAt, lastSkipCost);
     RenderTooltip("Time Remaining");
-    RenderTimer(Icons::Tachometer, COLOR_YELLOW, game.score, shownNewScoreTimerAt, lastScore);
+    timerColor = paused ? COLOR_GRAY_LIGHT : COLOR_YELLOW;
+    RenderTimer(Icons::Tachometer, timerColor, game.score, shownNewScoreTimerAt, lastScore);
     RenderTooltip("Score");
     if (RenderPB()) UI::NewLine();
     UI::Separator();
 
     // Timers
     int secondColumn = WINDOW_PADDING + 103;
-    RenderTinyTimer(Icons::ClockO, game.IsFinished()?COLOR_WHITE:COLOR_GRAY_LIGHT, game.TotalTimeSpent());
+    RenderTinyTimer(Icons::ClockO, game.IsFinished()?COLOR_WHITE:COLOR_GRAY, game.TotalTimeSpent());
     RenderTooltip("Time Spent (Total)");
     UI::SetCursorPosX(secondColumn);
-    RenderTinyTimer(Icons::Map, COLOR_GRAY_LIGHT, game.CurrentTimeSpent());
+    RenderTinyTimer(Icons::Map, COLOR_GRAY, game.CurrentTimeSpent());
     RenderTooltip("Time Spent (Current Map)");
     UI::NewLine();
 }
@@ -51,7 +55,7 @@ void DisplayInProgressScreen() {
         // Map name
         UI::BeginGroup();
         UI::PushFontSize(12);
-        UI::PushStyleColor(UI::Col::Text, COLOR_GRAY_LIGHT);
+        UI::PushStyleColor(UI::Col::Text, COLOR_GRAY);
         UI::Text(game.CurrentMapName(), 35); UI::SameLine();
         UI::PopStyleColor();
         UI::PopFontSize();
@@ -62,7 +66,7 @@ void DisplayInProgressScreen() {
     // Possible bonus
     UI::BeginGroup();
     UI::Text(Icons::Tachometer); UI::SameLine();
-    UI::PushStyleColor(UI::Col::Text, COLOR_GRAY_LIGHT);
+    UI::PushStyleColor(UI::Col::Text, COLOR_GRAY);
     auto possibleScore = autoPaused?"???":"+" + clock(game.PossibleScoreMin()) + "–" + clock(game.PossibleScoreMax());
     UI::Text(possibleScore); UI::SameLine();
     UI::PopStyleColor();

@@ -1,3 +1,4 @@
+bool recordsHidden = true;
 bool detailsHidden = true;
 
 // Main
@@ -13,25 +14,28 @@ void Render() {
         UI::PushStyleVar(UI::StyleVar::FramePadding, vec2(4, 4));
         UI::PushStyleVar(UI::StyleVar::WindowTitleAlign, vec2(0.5, 0.5));
     }
-    // UI::SetNextWindowSize(350, 600); // not compatible with UI::WindowFlags::AlwaysAutoResize
-    UI::Begin(SHORT_NAME_WITH_ICON, UI::WindowFlags::AlwaysAutoResize | UI::WindowFlags::NoScrollbar | UI::WindowFlags::NoCollapse);
 
-    UI::Dummy(vec2(WINDOW_WIDTH, 0));
-
+    auto flags = UI::WindowFlags::AlwaysAutoResize | UI::WindowFlags::NoScrollbar | UI::WindowFlags::NoCollapse;
     if (game is null) {
+        // Home Screen can be closed
+        UI::Begin(SHORT_NAME_WITH_ICON, Visible, flags);
+        UI::Dummy(vec2(WINDOW_WIDTH, 0));
         DisplayStartScreen();
+        UI::End();
     } else {
+        UI::Begin(SHORT_NAME_WITH_ICON, flags);
+        UI::Dummy(vec2(WINDOW_WIDTH, 0));
         DisplayGameScreen();
+        UI::End();
     }
 
-    UI::End();
     UI::PopStyleVar(styleVarCount);
 }
 
 /* Start Screen */
 void DisplayStartScreen() {
     UI::PushFontSize(18);
-    UI::Text("Challenge Settings");
+    UI::Text("Select Goal");
     UI::PopFontSize();
     UI::PushItemWidth(140);
     if(UI::BeginCombo("##ChallengeTarget", ModeName(SelectedChallengeMode))) {
@@ -42,11 +46,27 @@ void DisplayStartScreen() {
     UI::PopItemWidth();
 
     if (CustomMaps) {
-        UI::Text("Custom filters enabled.");
+        UI::Text(Icons::ExclamationCircle + " Custom filters enabled.");
     } else {
-        if (RenderPB()) UI::NewLine();
-        if (RenderWR()) UI::NewLine();
+        auto recordsIcon = recordsHidden ? Icons::ChevronDown : Icons::ChevronUp;
+        if (UI::ButtonColored(recordsIcon + " Records ", 0.6, 0.6, 0.6)) {
+            recordsHidden = !recordsHidden;
+        }
+
+        if (!recordsHidden) {
+            UI::Text("Personal Best");
+            RenderPB(); UI::NewLine();
+            UI::Text("Global Records");
+            RenderWRs();
+
+            if (ScoreApiHost != "") {
+                auto leaderBoardURL = ScoreApiHost + "/rmpc";
+                UI::TextLinkOpenURL("Full Leaderboard", leaderBoardURL);
+                RenderTooltip(leaderBoardURL);
+            }
+        }
     }
+
     UI::Separator();
 
     UI::Markdown("**Goal**");
@@ -67,14 +87,6 @@ void DisplayStartScreen() {
         UI::PushFontSize(3); UI::NewLine(); UI::PopFontSize();
         UI::Markdown("Read more in plugin description.");
         UI::PopFontSize();
-    }
-
-    if (ScoreApiHost != "") {
-        UI::PushFontSize(3); UI::NewLine(); UI::PopFontSize();
-        UI::Text(Icons::Kenney::PodiumAlt); UI::SameLine();
-        auto leaderBoardURL = ScoreApiHost + "/rmpc";
-        UI::TextLinkOpenURL("Leaderboard", leaderBoardURL);
-        RenderTooltip(leaderBoardURL);
     }
 
     UI::PushFontSize(12);
