@@ -28,12 +28,12 @@ void DisplayGameScreen() {
 void DisplayGameHeader() {
     bool paused = game.isPaused || IsAutoPaused();
     // Game Timers + PB
-    vec4 buttonColor;
-    buttonColor = paused ? COLOR_GRAY_LIGHT : COLOR_GREEN;
-    RenderTimer(ProgressIcon(), buttonColor, game.timer, shownSkipCostTimerAt, lastSkipCost);
+    vec4 timerColor;
+    timerColor = paused ? COLOR_GRAY_LIGHT : COLOR_GREEN;
+    RenderTimer(ProgressIcon(), timerColor, game.timer, shownSkipCostTimerAt, lastSkipCost);
     RenderTooltip("Time Remaining");
-    buttonColor = paused ? COLOR_GRAY_LIGHT : COLOR_YELLOW;
-    RenderTimer(Icons::Tachometer, buttonColor, game.score, shownNewScoreTimerAt, lastScore);
+    timerColor = paused ? COLOR_GRAY_LIGHT : COLOR_YELLOW;
+    RenderTimer(Icons::Tachometer, timerColor, game.score, shownNewScoreTimerAt, lastScore);
     RenderTooltip("Score");
     if (RenderPB()) UI::NewLine();
     UI::Separator();
