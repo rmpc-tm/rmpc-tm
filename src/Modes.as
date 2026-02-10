@@ -14,6 +14,13 @@ class WorldRecord {
         score = s;
         playerName = name;
     }
+
+    WorldRecord(Json::Value@ data) {
+        if (data !is null) {
+            score = int64(data.Get("score"));
+            playerName = string(data.Get("player_name"));
+        }
+    }
 }
 
 int64 ModeTimer(ChallengeMode mode) {
@@ -76,12 +83,12 @@ int64 PersonalBest(ChallengeMode mode) {
     }
 }
 
-WorldRecord@ GetWorldRecord(ChallengeMode mode) {
+WorldRecord@ GetWorldRecord(ChallengeMode mode, bool allTime) {
     switch(mode) {
         case ChallengeMode::Author60:
-            return WRAuthor60;
+            return allTime ? WRAuthor60 : WRAuthor60Month;
         case ChallengeMode::Gold60:
-            return WRGold60;
+            return allTime ? WRGold60 : WRGold60Month;
     }
     return null;
 }

@@ -38,6 +38,7 @@ void Main() {
    }
 }
 
+// Plugins Menu
 void RenderMenu() {
    if (UI::MenuItem(PLUGIN_NAME_WITH_ICON, "", Visible)) {
       Visible = !Visible;
@@ -91,19 +92,15 @@ void LoadWorldRecordsAsync() {
    auto jsonData = req.Json();
    if (jsonData is null) return;
 
-   auto authorData = jsonData.Get("author");
-   if (authorData !is null) {
-      WRAuthor60 = WorldRecord(
-         int64(authorData.Get("score")),
-         string(authorData.Get("player_name"))
-      );
+   auto allTimeData = jsonData.Get("all_time");
+   if (allTimeData !is null) {
+      WRAuthor60 = WorldRecord(allTimeData.Get("author"));
+      WRGold60 = WorldRecord(allTimeData.Get("gold"));
    }
 
-   auto goldData = jsonData.Get("gold");
-   if (goldData !is null) {
-      WRGold60 = WorldRecord(
-         int64(goldData.Get("score")),
-         string(goldData.Get("player_name"))
-      );
+   auto monthlyData = jsonData.Get("monthly");
+   if (monthlyData !is null) {
+      WRAuthor60Month = WorldRecord(monthlyData.Get("author"));
+      WRGold60Month = WorldRecord(monthlyData.Get("gold"));
    }
 }
